@@ -169,6 +169,18 @@ class JeegitApplicationTest {
   }
 
   @Test
+  void approvalAgent_alwaysBlockedByHitl() throws Exception {
+    mvc()
+        .perform(
+            post("/api/v1/ai/agents/agent.approval/invoke")
+                .with(httpBasic("admin", "admin"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"input\":{\"matterId\":\"abc\"}}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.status").value("PENDING_APPROVAL"));
+  }
+
+  @Test
   void unauthenticatedWrite_isRejected() throws Exception {
     mvc()
         .perform(
