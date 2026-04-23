@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.jeegit</groupId>
+        <artifactId>jeegit-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>jeegit-tech</artifactId>
+    <name>jeegit :: tech (技术中台)</name>
+    <description>IAM / 租户 / 组织 / 角色 / 权限 / 审计（JPA 实体与服务）</description>
+    <dependencies>
+        <dependency>
+            <groupId>io.jeegit</groupId>
+            <artifactId>jeegit-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+    </dependencies>
+</project>
