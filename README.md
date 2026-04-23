@@ -6,6 +6,8 @@ Released under the Apache License 2.0.
 > jeegit helps teams compose auditable, multi-tenant, AI-capable business applications —
 > from internal workflow tools to mission-critical e-government services — on a single, coherent stack.
 
+> 🌍 **Also available in:** [简体中文](docs/i18n/zh-CN/README.md) · [繁體中文](docs/i18n/zh-TW/README.md) · [日本語](docs/i18n/ja/README.md) · [한국어](docs/i18n/ko/README.md) · [Español](docs/i18n/es/README.md) · [Français](docs/i18n/fr/README.md) · [Deutsch](docs/i18n/de/README.md) · [Português (Brasil)](docs/i18n/pt-BR/README.md) · [Русский](docs/i18n/ru/README.md) · [Italiano](docs/i18n/it/README.md) · [العربية](docs/i18n/ar/README.md)
+
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/java-21-orange.svg)](#)
 [![Spring Boot](https://img.shields.io/badge/spring--boot-3.3-brightgreen.svg)](#)
