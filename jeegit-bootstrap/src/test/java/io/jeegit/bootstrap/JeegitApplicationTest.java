@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -28,9 +30,12 @@ import org.springframework.web.context.WebApplicationContext;
 class JeegitApplicationTest {
 
   @Autowired private WebApplicationContext webApplicationContext;
+  @Autowired private FilterChainProxy springSecurityFilterChain;
 
   private MockMvc mvc() {
-    return MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+    return MockMvcBuilders.webAppContextSetup(webApplicationContext)
+        .addFilters(springSecurityFilterChain)
+        .build();
   }
 
   @Test
@@ -114,6 +119,7 @@ class JeegitApplicationTest {
         mvc()
             .perform(
                 post("/api/v1/matters")
+                    .with(httpBasic("admin", "admin"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         "{\"title\":\"Tax filing help\","
@@ -128,7 +134,7 @@ class JeegitApplicationTest {
     String id = createdBody.path("data").path("id").asText();
 
     mvc()
-        .perform(post("/api/v1/matters/" + id + "/dispatch"))
+        .perform(post("/api/v1/matters/" + id + "/dispatch").with(httpBasic("admin", "admin")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.status").value("EXECUTED"))
         .andExpect(jsonPath("$.data.decision.department").value("Tax Bureau"))
@@ -152,6 +158,7 @@ class JeegitApplicationTest {
     mvc()
         .perform(
             post("/api/v1/ai/agents/agent.intake.dispatch/invoke")
+                .with(httpBasic("admin", "admin"))
                 .header("Accept-Language", "es")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"input\":{}}"))
@@ -159,6 +166,16 @@ class JeegitApplicationTest {
         .andExpect(jsonPath("$.data.status").value("DENIED"))
         .andExpect(jsonPath("$.data.reasoningSummary", containsString("matterId")))
         .andExpect(jsonPath("$.meta.locale").value("es"));
+  }
+
+  @Test
+  void unauthenticatedWrite_isRejected() throws Exception {
+    mvc()
+        .perform(
+            post("/api/v1/matters")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"title\":\"x\"}"))
+        .andExpect(status().isUnauthorized());
   }
 
   @Test
