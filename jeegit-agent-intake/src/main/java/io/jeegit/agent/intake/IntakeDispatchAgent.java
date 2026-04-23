@@ -11,6 +11,7 @@ import io.jeegit.ai.model.ModelResponse;
 import io.jeegit.ai.tool.Tool;
 import io.jeegit.ai.tool.ToolRegistry;
 import io.jeegit.common.TenantContext;
+import io.jeegit.common.i18n.I18n;
 import io.jeegit.tech.dict.DictItem;
 import io.jeegit.tech.dict.DictService;
 import org.springframework.stereotype.Component;
@@ -21,37 +22,42 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 受理分派 Agent（示范实现）。
+ * Reference intake / dispatch agent.
  *
- * 决策过程：
- *   1) 从字典 {@code MATTER_DISPATCH_RULE} 读取规则条目
- *      item_key   = 目标部门
- *      item_value = 关键词列表（逗号分隔）
- *   2) 依次匹配标题 / 分类 / 描述，命中即锁定目标部门
- *   3) 无命中则走默认 "综合受理窗口"
- *   4) 调 Model Gateway 生成可审计的一句话理由
- *   5) 通过 {@code matter.dispatch} 工具完成分派
+ * Decision flow:
+ *   1. Read the {@code MATTER_DISPATCH_RULE} dictionary.
+ *      item_key   = target department
+ *      item_value = comma-separated keyword list
+ *   2. Match title / category / description against each rule; first hit wins.
+ *   3. Fall back to the "general intake window" when nothing matches.
+ *   4. Ask the Model Gateway for a neutral, auditable rationale.
+ *   5. Update state through the {@code matter.dispatch} tool.
  *
- * 运营可在不重启应用的前提下通过字典 API 调整规则——规则即数据。
+ * The user-facing reasoning summary is rendered in the caller's locale
+ * (driven by the incoming Accept-Language header); the prompt sent to the
+ * model is kept in English to maximize cross-model compatibility.
  */
 @Component
 public class IntakeDispatchAgent implements Agent {
 
     public static final String AGENT_ID = "agent.intake.dispatch";
     public static final String RULE_DICT_CODE = "MATTER_DISPATCH_RULE";
-    public static final String DEFAULT_DEPARTMENT = "综合受理窗口";
+    public static final String DEFAULT_DEPARTMENT_KEY = "org.default.general_window";
     private static final Set<String> ALLOWED_TOOLS = Set.of("matter.dispatch");
 
     private final ToolRegistry toolRegistry;
     private final ModelGateway modelGateway;
     private final DictService dictService;
+    private final I18n i18n;
 
     public IntakeDispatchAgent(ToolRegistry toolRegistry,
                                ModelGateway modelGateway,
-                               DictService dictService) {
+                               DictService dictService,
+                               I18n i18n) {
         this.toolRegistry = toolRegistry;
         this.modelGateway = modelGateway;
         this.dictService = dictService;
+        this.i18n = i18n;
     }
 
     @Override
@@ -60,7 +66,7 @@ public class IntakeDispatchAgent implements Agent {
                 AGENT_ID,
                 "default",
                 "system",
-                "政务事项受理分派 Agent：按字典规则 + 模型辅助推理完成部门分派",
+                i18n.t("agent.intake.description"),
                 Set.of("ROLE_DISPATCHER"),
                 ALLOWED_TOOLS,
                 "MEDIUM",
@@ -76,7 +82,7 @@ public class IntakeDispatchAgent implements Agent {
         String description = str(request.input().get("description"));
 
         if (matterId == null || matterId.isBlank()) {
-            return AgentResponse.denied("缺少 matterId，无法分派。", null);
+            return AgentResponse.denied(i18n.t("agent.error.matter_id_required"), null);
         }
 
         String previousTenant = TenantContext.tenant();
@@ -91,16 +97,17 @@ public class IntakeDispatchAgent implements Agent {
         ModelResponse llm = modelGateway.invoke(ModelRequest.of(
                 request.tenantId(),
                 "default",
-                "事项标题：" + n(title)
-                        + "\n分类：" + n(category)
-                        + "\n已选定部门：" + match.department
-                        + "\n请用一句中立、可审计的中文说明此分派理由。"
+                "Matter title: " + n(title)
+                        + "\nCategory: " + n(category)
+                        + "\nSelected department: " + match.department
+                        + "\nPlease produce a neutral, auditable one-sentence "
+                        + "rationale justifying this routing decision."
         ));
 
         Tool tool = toolRegistry.find("matter.dispatch")
                 .orElseThrow(() -> new IllegalStateException("matter.dispatch tool not available"));
         if (!ALLOWED_TOOLS.contains(tool.name())) {
-            return AgentResponse.denied("Agent 未被授予工具 " + tool.name(), null);
+            return AgentResponse.denied(i18n.t("agent.error.tool_denied", AGENT_ID, tool.name()), null);
         }
 
         Map<String, Object> toolOut = tool.execute(Map.of(
@@ -117,10 +124,11 @@ public class IntakeDispatchAgent implements Agent {
         decision.put("matchedKeyword", match.matchedKeyword);
         decision.put("toolResult", toolOut);
 
-        String reasoning = "规则来源：" + match.source
-                + "；命中关键词：" + (match.matchedKeyword == null ? "(无)" : match.matchedKeyword)
-                + "；目标部门：" + match.department
-                + "。模型补充：" + llm.content();
+        String ruleLine = match.matchedKeyword != null
+                ? i18n.t("agent.intake.reasoning.rule", match.source,
+                        match.matchedKeyword, match.department)
+                : i18n.t("agent.intake.reasoning.fallback");
+        String reasoning = ruleLine + " " + i18n.t("agent.intake.reasoning.model", llm.content());
         return AgentResponse.executed(decision, reasoning, null);
     }
 
@@ -138,7 +146,7 @@ public class IntakeDispatchAgent implements Agent {
                 }
             }
         }
-        return new Match(DEFAULT_DEPARTMENT, "fallback:default", null);
+        return new Match(i18n.t(DEFAULT_DEPARTMENT_KEY), "fallback:default", null);
     }
 
     private record Match(String department, String source, String matchedKeyword) {
