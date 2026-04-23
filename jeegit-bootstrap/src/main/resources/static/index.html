@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title data-i18n="app.title">jeegit — AI-Native Platform</title>
+  <meta name="description" content="jeegit console — manage tenants, organizations, matters, and AI agents." />
+  <meta name="theme-color" content="#6750A4" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="mask-icon" href="/favicon.svg" color="#6750A4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body>
+  <header class="app-bar" role="banner">
+    <div class="app-bar__leading">
+      <span class="material-symbols-outlined" aria-hidden="true">hub</span>
+      <div class="app-bar__titles">
+        <h1 class="app-bar__title">jeegit</h1>
+        <p class="app-bar__subtitle" data-i18n="app.tagline">AI-Native application framework</p>
+      </div>
+    </div>
+    <nav class="app-bar__nav" aria-label="Primary">
+      <a class="nav-link is-active" data-route="dashboard" href="#/dashboard">
+        <span class="material-symbols-outlined" aria-hidden="true">dashboard</span>
+        <span data-i18n="nav.dashboard">Dashboard</span>
+      </a>
+      <a class="nav-link" data-route="matters" href="#/matters">
+        <span class="material-symbols-outlined" aria-hidden="true">inbox</span>
+        <span data-i18n="nav.matters">Matters</span>
+      </a>
+      <a class="nav-link" data-route="audit" href="#/audit">
+        <span class="material-symbols-outlined" aria-hidden="true">fact_check</span>
+        <span data-i18n="nav.audit">Audit trail</span>
+      </a>
+      <a class="nav-link" data-route="orgs" href="#/orgs">
+        <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
+        <span data-i18n="nav.orgs">Organizations</span>
+      </a>
+    </nav>
+    <div class="app-bar__trailing">
+      <label class="locale-picker">
+        <span class="material-symbols-outlined" aria-hidden="true">language</span>
+        <select id="locale-picker" aria-label="Select language"></select>
+      </label>
+      <a class="btn btn--tonal" href="/swagger-ui.html" target="_blank" rel="noopener">
+        <span class="material-symbols-outlined" aria-hidden="true">api</span>
+        <span data-i18n="app.api">API</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="app-root" class="app-root" role="main">
+    <div class="loading" data-i18n="app.loading">Loading…</div>
+  </main>
+
+  <footer class="app-foot" role="contentinfo">
+    <span data-i18n="app.footer.copyright">© jeegit contributors. Apache-2.0.</span>
+    <span class="app-foot__spacer"></span>
+    <span data-i18n="app.footer.version">Version</span>
+    <code id="footer-version">—</code>
+  </footer>
+
+  <div id="toast-host" class="toast-host" aria-live="polite"></div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
