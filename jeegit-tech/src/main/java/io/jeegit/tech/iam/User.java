@@ -1,55 +1,56 @@
 package io.jeegit.tech.iam;
 
-import jakarta.persistence.*;
-import java.time.Instant;
+import io.jeegit.common.dao.TenantAwareEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 
 /**
- * 用户（内部主体）。角色与权限走字符串集合，避免 MVP 阶段引入额外联表复杂度；
- * 后续可演进为独立的角色聚合根。
+ * 用户（User）—— 平台身份主体。
+ * {@code orgId} 指向用户所属的组织节点（见 {@link io.jeegit.tech.org.Org}），
+ * 供数据权限计算使用。
  */
 @Entity
-@Table(name = "jeegit_user", indexes = @Index(name = "idx_user_tenant", columnList = "tenantId"))
-public class User {
+@Table(name = "jg_user",
+        indexes = {
+                @Index(name = "uk_user_name", columnList = "tenant_id,username", unique = true),
+                @Index(name = "idx_user_org", columnList = "tenant_id,org_id")
+        })
+public class User extends TenantAwareEntity {
 
-    @Id
-    @Column(length = 64)
-    private String id;
-
-    @Column(nullable = false, length = 64)
-    private String tenantId;
-
-    @Column(nullable = false, length = 128)
+    @Column(name = "username", length = 128, nullable = false)
     private String username;
 
-    @Column(length = 256)
+    @Column(name = "display_name", length = 256)
     private String displayName;
 
-    @Column(length = 256)
-    private String department;
+    @Column(name = "org_id", length = 64)
+    private String orgId;
 
-    @Column(nullable = false)
-    private Instant createdAt = Instant.now();
+    @Column(name = "email", length = 256)
+    private String email;
+
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true;
 
     public User() {
     }
 
-    public User(String id, String tenantId, String username, String displayName, String department) {
-        this.id = id;
-        this.tenantId = tenantId;
+    public User(String username, String displayName, String orgId) {
         this.username = username;
         this.displayName = displayName;
-        this.department = department;
+        this.orgId = orgId;
     }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-    public String getTenantId() { return tenantId; }
-    public void setTenantId(String tenantId) { this.tenantId = tenantId; }
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
     public String getDisplayName() { return displayName; }
     public void setDisplayName(String displayName) { this.displayName = displayName; }
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
-    public Instant getCreatedAt() { return createdAt; }
+    public String getOrgId() { return orgId; }
+    public void setOrgId(String orgId) { this.orgId = orgId; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
 }
