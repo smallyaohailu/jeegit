@@ -1,0 +1,41 @@
+# CODEOWNERS for jeegit — patterned on Google's public OSS repositories.
+# Each line binds a path to the people or teams responsible for reviewing it.
+# The catch-all at the end makes sure nothing is left un-owned.
+
+# Architecture, governance, and product charters
+/docs/PRODUCT_CHARTER.md          @smallyaohailu
+/docs/ARCHITECTURE_CHARTER.md     @smallyaohailu
+/docs/AI_GOVERNANCE.md            @smallyaohailu
+/docs/AI_SAFETY_POLICY.md         @smallyaohailu
+/docs/DATA_POLICY.md              @smallyaohailu
+/docs/MODEL_LICENSES.md           @smallyaohailu
+
+# Engineering / SRE / Product playbooks
+/docs/engineering/                @smallyaohailu
+/docs/sre/                        @smallyaohailu
+/docs/product/                    @smallyaohailu
+/docs/adr/                        @smallyaohailu
+
+# Platform core
+/jeegit-common/                   @smallyaohailu
+/jeegit-tech/                     @smallyaohailu
+
+# AI Core
+/jeegit-ai/                       @smallyaohailu
+/jeegit-agent-intake/             @smallyaohailu
+
+# Business mid-platform
+/jeegit-business/                 @smallyaohailu
+
+# Open platform + console
+/jeegit-openapi/                  @smallyaohailu
+/jeegit-bootstrap/src/main/resources/static/    @smallyaohailu
+/jeegit-bootstrap/src/main/resources/i18n/      @smallyaohailu
+
+# Ops surface
+/Dockerfile                       @smallyaohailu
+/docker-compose.yml               @smallyaohailu
+/.github/                         @smallyaohailu
+
+# Catch-all — unreviewed paths fall to the project lead by default.
+*                                 @smallyaohailu

@@ -1,0 +1,55 @@
+name: Bug report
+description: File a reproducible bug
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not open an issue for security vulnerabilities — follow `SECURITY.md`
+        instead.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the observed behaviour. Include stack traces, request/response
+        pairs, or screenshots.
+    validations:
+      required: true
+  - type: textarea
+    id: what-expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Minimal steps, commands, or a failing test.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: jeegit version
+      description: Output of `GET /api/v1/platform/info` or the Maven version.
+    validations:
+      required: true
+  - type: input
+    id: profile
+    attributes:
+      label: Active Spring profile(s)
+      placeholder: default, postgres, pgvector, test
+  - type: input
+    id: locale
+    attributes:
+      label: Locale in use
+      placeholder: en, zh-CN, ja, ar …
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched open and closed issues.
+          required: true
+        - label: I am willing to submit a PR if guidance is provided.
