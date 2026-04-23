@@ -9,6 +9,7 @@ Released under the Apache License 2.0.
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/java-21-orange.svg)](#)
 [![Spring Boot](https://img.shields.io/badge/spring--boot-3.3-brightgreen.svg)](#)
+[![Locales](https://img.shields.io/badge/i18n-12%20locales-blueviolet.svg)](docs/i18n/LANGUAGES.md)
 [![Status](https://img.shields.io/badge/status-preview-yellow.svg)](#)
 
 ---
@@ -39,6 +40,9 @@ jeegit gives you both in one opinionated framework:
   DEPARTMENT_AND_CHILD / SELF / CUSTOM).
 - Dictionary service — runtime-editable key/value catalogs used by both business code and agents.
 - Workflow engine integration point (pluggable; default stub ships out of the box).
+- **Built-in internationalization** — first-party translations for 12 locales
+  (see [`docs/i18n/LANGUAGES.md`](docs/i18n/LANGUAGES.md)), negotiated per
+  request via `Accept-Language`, with a `?lang=xx` override for quick testing.
 
 ### AI-Native layer
 - **Model Gateway** — single choke point for every LLM call; handles auth, quota, cost, audit, PII
@@ -124,6 +128,21 @@ curl -s -X POST http://127.0.0.1:8080/api/v1/matters/$ID/dispatch | jq
 curl -s http://127.0.0.1:8080/api/v1/audit/tenants/default | jq
 ```
 
+### Switch languages on the fly
+
+```bash
+# Negotiate via Accept-Language
+curl -s -H 'Accept-Language: zh-CN' http://127.0.0.1:8080/api/v1/platform/info | jq .data.tagline
+curl -s -H 'Accept-Language: ja'    http://127.0.0.1:8080/api/v1/platform/info | jq .data.tagline
+curl -s -H 'Accept-Language: ar'    http://127.0.0.1:8080/api/v1/platform/info | jq .data.tagline
+
+# Or override with ?lang= for testing
+curl -s 'http://127.0.0.1:8080/api/v1/platform/info?lang=fr' | jq .data.tagline
+
+# List every supported locale
+curl -s http://127.0.0.1:8080/api/v1/platform/locales | jq
+```
+
 ## Governance documents
 
 | Document | Purpose |
@@ -135,6 +154,7 @@ curl -s http://127.0.0.1:8080/api/v1/audit/tenants/default | jq
 | [`docs/DATA_POLICY.md`](docs/DATA_POLICY.md) | Data classification and handling |
 | [`docs/AI_SAFETY_POLICY.md`](docs/AI_SAFETY_POLICY.md) | Threat model and built-in mitigations |
 | [`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md) | Scope of the current preview |
+| [`docs/i18n/LANGUAGES.md`](docs/i18n/LANGUAGES.md) | Supported locales and localization process |
 
 ## Roadmap
 

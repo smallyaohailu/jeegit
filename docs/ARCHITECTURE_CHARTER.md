@@ -1,82 +1,108 @@
-# 架构宪章 ARCHITECTURE CHARTER · jeegit
+# Architecture Charter
 
-> 本文档描述 jeegit 的 **不可变架构原则**：3–5 年内不轻易变更。
-> 所有 PR / RFC 必须声明是否符合本宪章；破坏性变更必须走 RFC 流程。
+> This document captures **non-negotiable architecture principles** for jeegit.
+> Every PR / RFC must state compliance with this charter; breaking changes go
+> through the RFC process.
 
 ---
 
-## 1. 整体结构：1 + 4 + 1
+## 1. Shape: 1 + 4 + 1
 
-- **1 个 AI 原生底座（AI Core）**：统一模型、Agent、工具、RAG、评测、治理
-- **4 个中台**：数据、业务、技术、应用
-- **1 个开放平台（Open Platform）**：对外 API + Event 总线
+- **1 AI Core** — model gateway, agent runtime, tool registry, RAG, evaluation,
+  human-in-the-loop, governance.
+- **4 Mid-Platforms** — data, business, tech, application.
+- **1 Open Platform** — API + event bus exposed to partners and in-house builders.
 
-> 关键：**稳定内核 + 可替换智能层 + 行业模板生态**。
+> Tagline: *stable core + replaceable intelligence layer + solution templates.*
 
-## 2. 技术主线（不可变 3 年）
+## 2. Technology baseline (stable for three years)
 
-| 维度       | 选型                                                              |
-| ---------- | ----------------------------------------------------------------- |
-| JDK        | **Java 21 LTS**                                                   |
-| 框架       | **Spring Boot 3.x** + Spring Modulith + Spring Security           |
-| ORM        | **JPA (Hibernate)**（主）+ 复杂查询可用 QueryDSL / Specification  |
-| 数据库     | **PostgreSQL**（主）/ MySQL（兼容），迁移用 Flyway                |
-| 缓存/MQ    | Redis / Kafka 或 RocketMQ                                         |
-| 向量检索   | **独立子系统**（pgvector / Milvus / ES 向量），不拉到 JPA 主链路  |
-| API 标准   | **OpenAPI + AsyncAPI** 双轨                                       |
-| 可观测     | OpenTelemetry + Prometheus + Grafana                              |
-| License    | **Apache-2.0**                                                    |
+| Area           | Choice                                                              |
+| -------------- | ------------------------------------------------------------------- |
+| JDK            | **Java 21 LTS**                                                     |
+| Framework      | **Spring Boot 3.x** + Spring Modulith + Spring Security             |
+| ORM            | **JPA (Hibernate)**; Specifications / QueryDSL for complex reads    |
+| RDBMS          | **PostgreSQL** primary, MySQL supported, Flyway for migrations      |
+| Cache / MQ     | Redis; Kafka or RocketMQ                                            |
+| Vector search  | **Dedicated subsystem** (pgvector / Milvus / ES-vector) — not JPA   |
+| API standards  | **OpenAPI + AsyncAPI** dual-track                                   |
+| Observability  | OpenTelemetry + Prometheus + Grafana                                |
+| I18n           | **First-party translations for 12 locales** (see LANGUAGES.md)      |
+| Primary language | **English-first** for code, comments, identifiers, documentation  |
+| License        | **Apache-2.0**                                                      |
 
-## 3. 架构原则（写入守则）
+## 3. Architecture principles (code of conduct)
 
-1. **稳定内核，智能层可替换** — 模型、向量库、编排框架随时可换。
-2. **SLM 优先，LLM 兜底** — 企业场景默认小模型，复杂问题回退大模型。
-3. **标准优先** — 遵循 OpenAPI / AsyncAPI / OIDC / OAuth2；为 A2A、MCP 预留适配层。
-4. **策略即代码 (Policy as Code)** — 权限/合规/风控策略可版本化、可审计。
-5. **审计即默认 (Audit by Default)** — 关键操作必须有不可篡改的审计记录。
-6. **评测即发布门禁 (Eval as Gate)** — AI 能力无评测集覆盖不得发布。
-7. **多租户隔离到底** — 数据 / 模型配置 / 知识库 / 日志全部按租户隔离。
-8. **人机协同默认开启** — 高风险动作必须人工确认，可回退可追责。
-9. **可离线 / 私有化 / 国产化部署优先** — 不内置任何必须联网的依赖。
-10. **模块化单体优先，渐进式分布式** — 先用 Modulith 保证边界，再按需拆分。
+1. **Stable core, replaceable intelligence layer** — model, vector store, and
+   orchestration framework can all be swapped.
+2. **SLM-first, LLM-as-fallback** — enterprise workloads default to small
+   models; large models handle the hard tail.
+3. **Standards first** — OpenAPI / AsyncAPI / OIDC / OAuth2; reserve adapter
+   layers for A2A and MCP.
+4. **Policy as code** — permissions, compliance, and risk controls are versioned
+   and auditable.
+5. **Audit by default** — every critical action produces a tamper-evident
+   record.
+6. **Eval as gate** — no AI capability is released without a passing evaluation
+   suite.
+7. **Tenant isolation end-to-end** — data, model configuration, knowledge base,
+   and logs are partitioned per tenant.
+8. **Human-in-the-loop by default** — high-risk actions require human approval;
+   everything is reversible and accountable.
+9. **English-first, multilingual ready** — English is authoritative; twelve
+   locales ship with the platform.
+10. **Offline-, private-, sovereign-deploy-ready** — no dependency on internet
+    connectivity is ever baked into the core.
+11. **Modular monolith first, distribute when needed** — enforce module
+    boundaries with Spring Modulith before splitting into services.
 
-## 4. 业务内核 vs 智能层的分层
+## 4. Business core vs. intelligence layer
 
 ```
-┌──────────────────── 智能层（可替换）────────────────────┐
-│ Prompt · Agent · Tool · RAG · 评测 · 模型路由          │
-└─────────────────────────┬───────────────────────────────┘
-                          │（稳定 API 契约）
-┌─────────────────────────▼───────────────────────────────┐
-│            业务内核（JPA · 事务 · 领域模型）            │
-│    IAM · 租户 · 流程 · 审计 · 领域服务                  │
-└─────────────────────────────────────────────────────────┘
+┌───────── Intelligence Layer (replaceable) ─────────┐
+│ Prompts · Agents · Tools · RAG · Eval · Routing    │
+└───────────────────────┬────────────────────────────┘
+                        │ (stable API contracts)
+┌───────────────────────▼────────────────────────────┐
+│           Business Core (JPA · tx · domain)        │
+│     IAM · Tenant · Workflow · Audit · Services     │
+└────────────────────────────────────────────────────┘
 ```
 
-业务内核改动频率 **低**；智能层改动频率 **高**。
-两层通过 **稳定 API 契约** 解耦，严禁智能层直接访问业务实体。
+The business core changes **slowly**; the intelligence layer changes **often**.
+They communicate through stable API contracts — the intelligence layer never
+touches business entities directly.
 
-## 5. JPA 使用约束
+## 5. JPA ground rules
 
-- 事务核心域（IAM / 组织 / 流程 / 审计 / 业务实体）**必须** 用 JPA。
-- JPA **不承担** 全文检索、向量检索、海量分析查询。
-- 复杂聚合查询使用 `@Query` / Specification，不写原生 SQL 打破抽象。
-- 每个聚合根必须有 `TenantId` 字段用于租户隔离（由 `@Filter` 强制过滤）。
+- Transactional core domains (IAM, organizations, workflow, audit, business
+  entities) **must** use JPA.
+- JPA **does not** own full-text search, vector search, or large-scale analytics.
+- Complex aggregations use `@Query` / Specification; no raw SQL that breaks the
+  abstraction.
+- Every aggregate root carries a {@code tenantId} so the tenant boundary is
+  enforced at the entity base class.
 
-## 6. 模块边界（Modulith）
+## 6. Module boundaries (Modulith)
 
-- 每个模块仅允许通过 **公共 API 包 (`api` 子包)** 暴露。
-- 跨模块调用走 **应用服务接口 + 领域事件**，禁止直接访问他模块实体。
-- AI 模块**不得**依赖具体业务模块；业务模块可调用 AI 模块公共 API。
+- A module only exposes types from its public `api` sub-package.
+- Cross-module calls go through application-service interfaces and domain
+  events — no direct access to another module's entities.
+- The AI module must not depend on concrete business modules; business modules
+  call into the AI module through its public API.
 
-## 7. API 契约原则
+## 7. API contract rules
 
-- URL 格式：`/api/v{major}/{domain}/{resource}`，主版本升级不破坏旧版本。
-- 所有对外 API 同时提供 **OpenAPI 描述**（为开放平台 SDK 生成做准备）。
-- 事件契约使用 **AsyncAPI** 描述，主题命名 `jeegit.{domain}.{event}.v1`。
+- URL shape: `/api/v{major}/{domain}/{resource}`; a major bump never breaks
+  the previous version.
+- Every public API ships an OpenAPI description for SDK generation by the Open
+  Platform.
+- Event contracts are described with AsyncAPI; topic naming is
+  `jeegit.{domain}.{event}.v1`.
 
-## 8. 破坏性变更流程
+## 8. Breaking-change process
 
-1. 提交 RFC（`docs/rfcs/XXXX-*.md`）
-2. Maintainer 审阅 + 社区讨论
-3. 通过后进入下一个主版本；提供至少一个次版本的弃用期与迁移指南
+1. Submit an RFC at `docs/rfcs/NNNN-<slug>.md`.
+2. Maintainer review plus community discussion.
+3. When accepted, land in the next major release with a deprecation window of
+   at least one minor release and a documented migration guide.
