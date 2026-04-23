@@ -1,71 +1,150 @@
 # jeegit
 
-**jeegit** 是一个面向政府数字化转型与中小企业数字化的 **AI-Native 企业级快速开发平台框架**，
-采用 **Apache License 2.0** 纯开源免费发布，以 **Java 21 + Spring Boot 3 + JPA** 为技术主线。
+**AI-Native application framework for the enterprise.** Built on Java 21, Spring Boot 3 and JPA.
+Released under the Apache License 2.0.
 
-> 我们的愿景：成为中国本土、企业级、长期可持续的 **纯开源免费** 政企开发平台。
+> jeegit helps teams compose auditable, multi-tenant, AI-capable business applications —
+> from internal workflow tools to mission-critical e-government services — on a single, coherent stack.
+
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Java](https://img.shields.io/badge/java-21-orange.svg)](#)
+[![Spring Boot](https://img.shields.io/badge/spring--boot-3.3-brightgreen.svg)](#)
+[![Status](https://img.shields.io/badge/status-preview-yellow.svg)](#)
 
 ---
 
-## 核心定位
+## Why jeegit
 
-- 面向政府：合规、审计、流程治理、跨部门协同、可私有化/国产化部署。
-- 面向中小企业：低门槛、开箱模板、成本可控、二次开发友好。
-- 面向开发者：标准化、插件化、可二开、生态可扩展。
+Modern applications need two things that rarely sit well together: the **stability** of an enterprise
+platform (multi-tenant isolation, audit, identity, workflow) and the **agility** of an AI-native
+stack (agents, tools, retrieval, evaluation). Most teams end up stitching these layers together from
+scratch, then rewriting the glue every quarter.
 
-## 架构全景（1 + 4 + 1）
+jeegit gives you both in one opinionated framework:
+
+- A **stable core** — IAM, multi-tenancy, append-only audit, organization tree, dictionary, role &
+  data-scope model, workflow integration point — that does not change at the whim of every new model.
+- A **replaceable intelligence layer** — model gateway, agent runtime, tool registry, knowledge
+  service, evaluation — with clear contracts so any vendor or in-house model can be plugged in.
+- **Reference business modules and agents** that demonstrate the intended shape of a solution.
+
+## Feature overview
+
+### Platform core
+- Multi-tenant data isolation (every aggregate carries `tenantId`, enforced at the entity base class).
+- JPA-based DAO foundation: `BaseEntity` → `AuditableEntity` → `TenantAwareEntity` → `TreeEntity`.
+- Unified audit log (append-only) with tracing fields.
+- Organization tree with materialized-path support for fast ancestor queries.
+- Role model with a declarative **Data Scope** enum (ALL / COMPANY / COMPANY_AND_CHILD / DEPARTMENT /
+  DEPARTMENT_AND_CHILD / SELF / CUSTOM).
+- Dictionary service — runtime-editable key/value catalogs used by both business code and agents.
+- Workflow engine integration point (pluggable; default stub ships out of the box).
+
+### AI-Native layer
+- **Model Gateway** — single choke point for every LLM call; handles auth, quota, cost, audit, PII
+  redaction. Drop-in replacements for OpenAI-compatible / local SLM / vendor SDKs.
+- **Agent Runtime** — registers agents, enforces tool whitelists, runs the HITL policy, writes an
+  explainable audit record for every invocation.
+- **Tool Registry** — a tool is the only way an agent can mutate business state; each tool declares
+  a risk level and is scoped to an explicit allow-list per agent.
+- **Knowledge Service (RAG)** — retrieval contract with citation support; swap in pgvector / Milvus /
+  Elasticsearch without touching business code.
+- **Evaluation Service** — "eval-as-gate" primitive; any agent / prompt / knowledge change can be
+  gated by an evaluation suite before release.
+- **Human-in-the-Loop guard** — declarative policies (`NONE` / `ON_HIGH_RISK` / `ALWAYS`) that block
+  risky actions until a human approves.
+
+### Reference solution — intake & dispatch
+A ready-to-run example showing how the platform composes:
+
+1. `POST /api/v1/matters` creates an intake record.
+2. `POST /api/v1/matters/{id}/dispatch` invokes the **Intake Dispatch Agent**, which consults the
+   `MATTER_DISPATCH_RULE` dictionary, calls the Model Gateway for a human-readable rationale, then
+   uses the `matter.dispatch` tool to update the record.
+3. The full decision (rule hit + model rationale + audit id) is returned.
+
+## Architecture (1 + 4 + 1)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     开放平台（API + Event）                 │
-│   API Gateway · 开发者门户 · API 资产目录 · SDK 生成        │
-└─────────────────────────────────────────────────────────────┘
-┌─────────────┬─────────────┬─────────────┬─────────────────┐
-│  数据中台   │  业务中台   │  技术中台   │   应用中台      │
-│  主数据/    │  事项/工单/ │  IAM/租户/  │  门户/BFF/      │
-│  指标/标签  │  合同/审批  │  审计/规则  │  模板工厂       │
-└─────────────┴─────────────┴─────────────┴─────────────────┘
-┌─────────────────────────────────────────────────────────────┐
-│                     AI 原生底座（AI Core）                  │
-│  Model Gateway · Agent Runtime · Tool Registry · RAG        │
-│  EvalOps · Human-in-the-Loop · AI Governance                │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────── Open Platform ─────────────────────────┐
+│   API Gateway · Developer Portal · API Catalog · SDK           │
+└────────────────────────────────────────────────────────────────┘
+┌───────────┬───────────┬───────────┬─────────────────────────────┐
+│   Data    │ Business  │   Tech    │         Application         │
+│  Platform │ Platform  │ Platform  │          Platform           │
+└───────────┴───────────┴───────────┴─────────────────────────────┘
+┌────────────────────────── AI Core ─────────────────────────────┐
+│ Model Gateway · Agent Runtime · Tool Registry · Knowledge /    │
+│ RAG · Evaluation · Human-in-the-Loop · AI Governance           │
+└────────────────────────────────────────────────────────────────┘
 ```
 
-## 地基文档（必读）
+## Module layout
 
-- [`docs/PRODUCT_CHARTER.md`](docs/PRODUCT_CHARTER.md) — 产品章程：愿景、边界、目标用户。
-- [`docs/ARCHITECTURE_CHARTER.md`](docs/ARCHITECTURE_CHARTER.md) — 架构宪章：不可变原则。
-- [`docs/AI_GOVERNANCE.md`](docs/AI_GOVERNANCE.md) — AI 治理：权限、审计、人机协同。
-- [`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md) — 首版 MVP 范围。
-- [`docs/MODEL_LICENSES.md`](docs/MODEL_LICENSES.md) — 模型许可政策。
-- [`docs/DATA_POLICY.md`](docs/DATA_POLICY.md) — 数据政策。
-- [`docs/AI_SAFETY_POLICY.md`](docs/AI_SAFETY_POLICY.md) — AI 安全策略。
+| Module                  | Role                                                                 |
+| ----------------------- | -------------------------------------------------------------------- |
+| `jeegit-common`         | DAO base classes, tenant context, API response, shared enums          |
+| `jeegit-tech`           | Tech Platform — tenant / org / user / role / dictionary / audit       |
+| `jeegit-data`           | Data Platform — master data, metrics, tags (scaffold)                 |
+| `jeegit-ai`             | AI Core — Model Gateway, Agent Runtime, Tool Registry, RAG, Eval, HITL|
+| `jeegit-business`       | Business Platform — matters, workflow integration point               |
+| `jeegit-app`            | Application Platform — portal, BFF (scaffold)                         |
+| `jeegit-openapi`        | Open Platform — API surface, developer-facing endpoints               |
+| `jeegit-agent-intake`   | Reference agent — intake & dispatch                                   |
+| `jeegit-bootstrap`      | Spring Boot 3 runnable assembly                                       |
 
-## 模块结构
-
-| 模块                     | 层级          | 说明                                                |
-| ------------------------ | ------------- | --------------------------------------------------- |
-| `jeegit-common`          | 通用          | 基础类、上下文、异常、通用响应                      |
-| `jeegit-tech`            | 技术中台      | 租户、组织、用户、角色、权限、审计（JPA 实体）      |
-| `jeegit-data`            | 数据中台      | 主数据、指标、标签骨架                              |
-| `jeegit-business`        | 业务中台      | 事项受理、工单、审批（首个行业模板）                |
-| `jeegit-app`             | 应用中台      | 门户、BFF、场景装配                                 |
-| `jeegit-ai`              | AI 原生底座   | ModelGateway / AgentRuntime / ToolRegistry / RAG    |
-| `jeegit-openapi`         | 开放平台      | API Gateway 接入点、开发者门户骨架                  |
-| `jeegit-agent-intake`    | 示范 Agent    | 受理分派 Agent（可解释 / 可审计 / 可人工接管）      |
-| `jeegit-bootstrap`       | 启动器        | Spring Boot 3 主应用，组装所有模块                  |
-
-## 快速开始
+## Quick start
 
 ```bash
+# Build everything
 mvn -q -DskipTests package
-java -jar jeegit-bootstrap/target/jeegit-bootstrap-*.jar
-# 访问
+
+# Run the reference assembly (H2 in-memory; Postgres in production)
+java -jar jeegit-bootstrap/target/jeegit-bootstrap.jar
+
+# Verify
 curl http://127.0.0.1:8080/actuator/health
 curl http://127.0.0.1:8080/api/v1/platform/info
 ```
 
+### Try the reference flow
+
+```bash
+# Create an intake
+MATTER=$(curl -s -X POST -H 'Content-Type: application/json' \
+  -d '{"title":"Business tax filing question","category":"tax","description":"need help","applicantId":"user-1"}' \
+  http://127.0.0.1:8080/api/v1/matters)
+
+ID=$(echo "$MATTER" | jq -r .data.id)
+
+# Let the agent dispatch it
+curl -s -X POST http://127.0.0.1:8080/api/v1/matters/$ID/dispatch | jq
+
+# Inspect the audit trail
+curl -s http://127.0.0.1:8080/api/v1/audit/tenants/default | jq
+```
+
+## Governance documents
+
+| Document | Purpose |
+| --- | --- |
+| [`docs/PRODUCT_CHARTER.md`](docs/PRODUCT_CHARTER.md) | Product charter — scope, audience, commitments |
+| [`docs/ARCHITECTURE_CHARTER.md`](docs/ARCHITECTURE_CHARTER.md) | Architecture principles that do not change lightly |
+| [`docs/AI_GOVERNANCE.md`](docs/AI_GOVERNANCE.md) | Agent permissions, audit, HITL, eval-as-gate |
+| [`docs/MODEL_LICENSES.md`](docs/MODEL_LICENSES.md) | Model-license posture |
+| [`docs/DATA_POLICY.md`](docs/DATA_POLICY.md) | Data classification and handling |
+| [`docs/AI_SAFETY_POLICY.md`](docs/AI_SAFETY_POLICY.md) | Threat model and built-in mitigations |
+| [`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md) | Scope of the current preview |
+
+## Roadmap
+
+- Persistent RDBMS profile (PostgreSQL + Flyway migrations)
+- BPMN engine integration (Flowable / Camunda)
+- OpenAI-compatible model gateway implementation (plus local SLM connector)
+- pgvector knowledge provider
+- Evaluation harness with a CI gate
+- Developer portal UI for the Open Platform
+
 ## License
 
-Apache License 2.0 — 代码能力不阉割，付费的是服务质量和交付效率。
+Apache License 2.0. See [`LICENSE`](LICENSE).
