@@ -57,10 +57,20 @@
    - （若命中 HITL）返回 `status=PENDING_APPROVAL`
 7. `audit_log` 中能查到完整调用链。
 
-## 5. 下一步（Out of MVP）
+## 5. v0.2 增量（已交付）
+
+- DAO 基座：`BaseEntity` / `AuditableEntity` / `TenantAwareEntity` / `TreeEntity`
+- JPA 审计自动填充：`@CreatedBy` / `@CreatedDate` / `@LastModifiedBy` / `@LastModifiedDate`
+- 组织树（`Org`，COMPANY / DEPARTMENT / TEAM）+ 物化路径 + 后代查询
+- 字典服务（`DictType` / `DictItem`）—— 运营可热更新业务规则
+- 角色 + `DataScope` 枚举 + `DataScopeSpecifications` 查询规约工厂
+- 受理分派 Agent 改为从字典读规则，运营可不重启应用调整分派策略
+
+## 6. 下一步（Out of MVP）
 
 - 接入真实 BPMN（Camunda / Flowable）
 - 接入真实模型（OpenAI 兼容 / 本地 SLM）
 - RAG 知识库（政策法规检索）
 - 开发者门户 + API Key 管理
 - 前端门户与工作台
+- PostgreSQL profile + Flyway 迁移
