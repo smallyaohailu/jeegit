@@ -1,5 +1,39 @@
 # Release notes
 
+## 1.1.0 — follow-through on the roadmap
+
+Ten additional self-iterated rounds after the 1.0.0 preview. Highlights:
+
+- **CI**: GitHub Actions workflow enforcing Google Java Style via Spotless, running
+  `mvn verify`, and exercising the multi-stage Docker build.
+- **OpenAI-compatible Model Gateway**: production implementation supporting OpenAI, Azure, DeepSeek,
+  Kimi, Qwen-API, Together.ai, Ollama, vLLM, and similar servers. Activated with
+  `jeegit.ai.model.provider=openai-compat`; falls back to the Echo gateway otherwise.
+- **pgvector-ready KnowledgeService**: a `jg_knowledge_chunk` table and a tenant-scoped search
+  service bound under the `pgvector` and `postgres` profiles. A documented ALTER TABLE recipe
+  lets operators enable pgvector when they want HNSW retrieval.
+- **Evaluation harness**: `EvaluationHarness` + `POST /api/v1/ai/eval/{agentId}/run` for release
+  gates. Case inputs are key=value lines; the expected substring is matched against the agent's
+  reasoning.
+- **Domain event bus**: in-process `EventBus` with wildcard subscriptions; `matter.submitted` and
+  `matter.dispatched` events fire from `MatterService`.
+- **Tenant & API-key authentication**: `X-API-Key` header resolves against the `jg_api_key` table,
+  promotes the caller to a Spring Security principal (authority `ROLE_PARTNER`) and adopts the
+  key's tenant for the rest of the request.
+- **Service-layer coverage**: new `@DataJpaTest` slices for `OrgService` (tree invariants,
+  descendants, missing-parent handling) and `DictService` (upsert idempotency, sort order).
+- **Console pages**: API keys, Prompt templates, Agents — all Material 3, all i18n-aware across
+  the 12 shipped locales.
+- **Internationalized documentation**: `docs/i18n/<locale>/README.md` landing pages across all
+  twelve languages, linked from the main README.
+- **Governance documents**: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`.
+
+Test suite: 43 green (25 common + 5 tech + 3 ai + 10 bootstrap). New contracts added:
+- `io.jeegit.ai.model.OpenAICompatibleModelGatewayTest` — stub HTTP server verifies Bearer auth,
+  `X-Jeegit-Tenant` header, request body, parsed response, audit log.
+- `io.jeegit.common.event.EventBusTest` — exact / wildcard routing, failure isolation.
+- `io.jeegit.tech.dict.DictServiceTest`, `io.jeegit.tech.org.OrgServiceTest`.
+
 ## 1.0.0 — production-grade preview
 
 After twenty auto-iterations, the preview has matured into a coherent,
