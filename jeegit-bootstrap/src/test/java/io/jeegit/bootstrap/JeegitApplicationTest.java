@@ -232,6 +232,36 @@ class JeegitApplicationTest {
   }
 
   @Test
+  void apiKey_canWriteWithoutBasicAuth() throws Exception {
+    ObjectMapper json = new ObjectMapper();
+    // 1) Issue a key (admin-authenticated)
+    MvcResult issued =
+        mvc()
+            .perform(
+                post("/api/v1/openapi/keys")
+                    .with(httpBasic("admin", "admin"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"name\":\"test-partner\",\"owner\":\"qa@example.com\"}"))
+            .andExpect(status().isOk())
+            .andReturn();
+    String rawKey =
+        json.readTree(issued.getResponse().getContentAsString())
+            .path("data")
+            .path("apiKey")
+            .asText();
+
+    // 2) Use the key to create a matter — no Basic credentials supplied.
+    mvc()
+        .perform(
+            post("/api/v1/matters")
+                .header("X-API-Key", rawKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"title\":\"via api key\",\"category\":\"tax\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.matterStatus").value("SUBMITTED"));
+  }
+
+  @Test
   void unauthenticatedWrite_isRejected() throws Exception {
     mvc()
         .perform(

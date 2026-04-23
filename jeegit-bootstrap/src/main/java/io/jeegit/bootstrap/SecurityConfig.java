@@ -2,6 +2,7 @@ package io.jeegit.bootstrap;
 
 import io.jeegit.common.JeegitConstants;
 import io.jeegit.common.TenantContext;
+import io.jeegit.openapi.apikey.ApiKeyService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,7 +43,8 @@ public class SecurityConfig {
   private String adminPassword;
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain filterChain(HttpSecurity http, ApiKeyService apiKeyService)
+      throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
@@ -71,6 +73,10 @@ public class SecurityConfig {
                     .anyRequest()
                     .permitAll())
         .httpBasic(org.springframework.security.config.Customizer.withDefaults())
+        .addFilterBefore(
+            new ApiKeyAuthenticationFilter(apiKeyService),
+            org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+                .class)
         .addFilterBefore(
             tenantContextFilter(),
             org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
