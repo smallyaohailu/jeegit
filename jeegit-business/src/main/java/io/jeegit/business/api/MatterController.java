@@ -1,0 +1,92 @@
+package io.jeegit.business.api;
+
+import io.jeegit.ai.agent.AgentRequest;
+import io.jeegit.ai.agent.AgentResponse;
+import io.jeegit.ai.agent.AgentRuntime;
+import io.jeegit.business.matter.Matter;
+import io.jeegit.business.matter.MatterService;
+import io.jeegit.common.ApiResponse;
+import io.jeegit.common.PagedResponse;
+import io.jeegit.common.TenantContext;
+import java.util.List;
+import java.util.Map;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/matters")
+public class MatterController {
+
+  private static final String INTAKE_AGENT_ID = "agent.intake.dispatch";
+
+  private final MatterService matterService;
+  private final AgentRuntime agentRuntime;
+
+  public MatterController(MatterService matterService, AgentRuntime agentRuntime) {
+    this.matterService = matterService;
+    this.agentRuntime = agentRuntime;
+  }
+
+  @PostMapping
+  public ApiResponse<Matter> create(@RequestBody Map<String, Object> body) {
+    Matter m =
+        matterService.submit(
+            (String) body.get("title"),
+            (String) body.getOrDefault("category", "default"),
+            (String) body.getOrDefault("description", ""),
+            (String) body.getOrDefault("applicantId", "anonymous"));
+    return ApiResponse.ok(m);
+  }
+
+  @GetMapping
+  public ApiResponse<List<Matter>> list() {
+    return ApiResponse.ok(matterService.listForCurrentTenant());
+  }
+
+  /**
+   * Paginated listing. Clamps {@code size} to [1,100] so a single caller cannot starve the
+   * database.
+   */
+  @GetMapping("/page")
+  public PagedResponse<Matter> page(
+      @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+    int effectiveSize = Math.max(1, Math.min(size, 100));
+    Pageable pageable =
+        PageRequest.of(Math.max(0, page), effectiveSize, Sort.by("createdAt").descending());
+    Page<Matter> result = matterService.pageForCurrentTenant(pageable);
+    return PagedResponse.of(result);
+  }
+
+  @GetMapping("/{id}")
+  public ApiResponse<Matter> get(@PathVariable String id) {
+    return ApiResponse.ok(matterService.get(id));
+  }
+
+  @PostMapping("/{id}/dispatch")
+  public ApiResponse<AgentResponse> dispatch(@PathVariable String id) {
+    Matter m = matterService.get(id);
+    AgentRequest req =
+        new AgentRequest(
+            INTAKE_AGENT_ID,
+            null,
+            m.getTenantId(),
+            TenantContext.actor(),
+            Map.of(
+                "matterId",
+                m.getId(),
+                "title",
+                m.getTitle(),
+                "category",
+                m.getCategory(),
+                "description",
+                m.getDescription() == null ? "" : m.getDescription(),
+                "applicantId",
+                m.getApplicantId() == null ? "" : m.getApplicantId(),
+                "orgId",
+                m.getOrgId() == null ? "" : m.getOrgId()));
+    return ApiResponse.ok(agentRuntime.invoke(req));
+  }
+}

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.jeegit</groupId>
+        <artifactId>jeegit-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>jeegit-openapi</artifactId>
+    <name>jeegit :: openapi (开放平台)</name>
+    <description>API 网关接入点 / 开发者门户骨架 / API 资产目录</description>
+    <dependencies>
+        <dependency>
+            <groupId>io.jeegit</groupId>
+            <artifactId>jeegit-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+    </dependencies>
+</project>

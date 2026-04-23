@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.jeegit</groupId>
+        <artifactId>jeegit-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>jeegit-business</artifactId>
+    <name>jeegit :: business (业务中台)</name>
+    <description>事项受理 / 工单 / 审批 / 工作流接入点</description>
+    <dependencies>
+        <dependency>
+            <groupId>io.jeegit</groupId>
+            <artifactId>jeegit-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.jeegit</groupId>
+            <artifactId>jeegit-tech</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.jeegit</groupId>
+            <artifactId>jeegit-ai</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+    </dependencies>
+</project>

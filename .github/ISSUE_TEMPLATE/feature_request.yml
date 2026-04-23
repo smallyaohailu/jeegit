@@ -1,0 +1,48 @@
+name: Feature request
+description: Propose a new capability or API
+labels: [enhancement, needs-triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is the user problem you are trying to solve? Cite telemetry or user
+        interviews if available.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: High-level. Detail goes in a design doc (see
+        `docs/engineering/design-doc-template.md`).
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - platform-core
+        - ai-core
+        - business
+        - open-platform
+        - console
+        - ops
+        - docs
+        - i18n
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I will draft a design doc before implementation if the change is non-trivial.
+          required: true
