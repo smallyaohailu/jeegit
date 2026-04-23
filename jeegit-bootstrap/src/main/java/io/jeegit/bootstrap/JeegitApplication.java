@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaAuditing(auditorAwareRef = "tenantAwareAuditorAware")
 public class JeegitApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(JeegitApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(JeegitApplication.class, args);
+  }
 }
