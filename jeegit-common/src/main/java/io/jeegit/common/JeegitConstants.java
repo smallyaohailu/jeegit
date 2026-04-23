@@ -4,7 +4,7 @@ package io.jeegit.common;
 public final class JeegitConstants {
 
   public static final String PLATFORM_NAME = "jeegit";
-  public static final String PLATFORM_VERSION = "0.2.0";
+  public static final String PLATFORM_VERSION = "1.0.0";
   public static final String DEFAULT_TENANT = "default";
   public static final String SYSTEM_ACTOR = "system";
 
