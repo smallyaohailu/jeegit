@@ -38,6 +38,12 @@ public class MatterService {
     return repository.findByTenantIdOrderByCreatedAtDesc(TenantContext.tenant());
   }
 
+  @Transactional(readOnly = true)
+  public org.springframework.data.domain.Page<Matter> pageForCurrentTenant(
+      org.springframework.data.domain.Pageable pageable) {
+    return repository.findByTenantId(TenantContext.tenant(), pageable);
+  }
+
   /**
    * List matters visible to the caller under the supplied data scope. The caller (REST layer or
    * agent) decides which {@code scope} / {@code anchorOrgId} apply; the service does not silently
