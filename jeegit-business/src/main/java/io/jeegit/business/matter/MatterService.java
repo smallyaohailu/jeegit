@@ -2,8 +2,11 @@ package io.jeegit.business.matter;
 
 import io.jeegit.common.TenantContext;
 import io.jeegit.common.dao.DataScope;
+import io.jeegit.common.event.DomainEvent;
+import io.jeegit.common.event.EventBus;
 import io.jeegit.tech.iam.DataScopeSpecifications;
 import java.util.List;
+import java.util.Map;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,19 +14,39 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MatterService {
 
+  public static final String TOPIC_MATTER_SUBMITTED = "jeegit.matter.submitted.v1";
+  public static final String TOPIC_MATTER_DISPATCHED = "jeegit.matter.dispatched.v1";
+
   private final MatterRepository repository;
   private final DataScopeSpecifications dataScopeSpecs;
+  private final EventBus eventBus;
 
-  public MatterService(MatterRepository repository, DataScopeSpecifications dataScopeSpecs) {
+  public MatterService(
+      MatterRepository repository, DataScopeSpecifications dataScopeSpecs, EventBus eventBus) {
     this.repository = repository;
     this.dataScopeSpecs = dataScopeSpecs;
+    this.eventBus = eventBus;
   }
 
   @Transactional
   public Matter submit(String title, String category, String description, String applicantId) {
     Matter m = new Matter(title, category, description, applicantId);
     m.setTenantId(TenantContext.tenant());
-    return repository.save(m);
+    Matter saved = repository.save(m);
+    eventBus.publish(
+        DomainEvent.of(
+            TOPIC_MATTER_SUBMITTED,
+            saved.getTenantId(),
+            Map.of(
+                "matterId",
+                saved.getId(),
+                "title",
+                saved.getTitle(),
+                "category",
+                saved.getCategory() == null ? "" : saved.getCategory(),
+                "applicantId",
+                saved.getApplicantId() == null ? "" : saved.getApplicantId())));
+    return saved;
   }
 
   @Transactional(readOnly = true)
@@ -65,6 +88,18 @@ public class MatterService {
     if (nextStatus != null) {
       m.setMatterStatus(nextStatus);
     }
-    return repository.save(m);
+    Matter saved = repository.save(m);
+    if (nextStatus == Matter.MatterStatus.DISPATCHED) {
+      eventBus.publish(
+          DomainEvent.of(
+              TOPIC_MATTER_DISPATCHED,
+              saved.getTenantId(),
+              Map.of(
+                  "matterId",
+                  saved.getId(),
+                  "department",
+                  saved.getAssignedDepartment() == null ? "" : saved.getAssignedDepartment())));
+    }
+    return saved;
   }
 }
