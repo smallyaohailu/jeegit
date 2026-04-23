@@ -10,6 +10,9 @@
   "nav.matters": "Matters",
   "nav.audit": "Audit trail",
   "nav.orgs": "Organizations",
+  "nav.keys": "API keys",
+  "nav.prompts": "Prompts",
+  "nav.agents": "Agents",
 
   "dashboard.heading": "Platform overview",
   "dashboard.metrics": "Platform metrics",
@@ -52,5 +55,36 @@
   "orgs.name": "Name",
   "orgs.type": "Type",
   "orgs.level": "Level",
-  "orgs.empty": "No organizations yet."
+  "orgs.empty": "No organizations yet.",
+
+  "keys.heading": "API keys",
+  "keys.issue": "Issue a new API key",
+  "keys.name": "Name",
+  "keys.owner": "Owner",
+  "keys.create": "Issue key",
+  "keys.revoke": "Revoke",
+  "keys.issued": "Key issued. Copy it now — the plaintext will not be shown again.",
+  "keys.raw": "Plaintext key (shown once)",
+  "keys.none": "No API keys issued yet.",
+  "keys.id": "ID",
+  "keys.digest": "Digest",
+  "keys.enabled": "Enabled",
+
+  "prompts.heading": "Prompt templates",
+  "prompts.create": "Create a new version",
+  "prompts.code": "Template code",
+  "prompts.template": "Template body (supports {{placeholders}})",
+  "prompts.description": "Description",
+  "prompts.save": "Save version",
+  "prompts.publish": "Publish",
+  "prompts.version": "Version",
+  "prompts.published": "Published",
+  "prompts.empty": "No prompt templates yet.",
+
+  "agents.heading": "Registered agents",
+  "agents.description": "Description",
+  "agents.risk": "Risk",
+  "agents.hitl": "HITL policy",
+  "agents.allowedTools": "Allowed tools",
+  "agents.none": "No agents registered."
 }

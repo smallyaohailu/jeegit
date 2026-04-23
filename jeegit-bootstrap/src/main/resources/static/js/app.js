@@ -104,6 +104,21 @@ async function apiPost(path, body) {
   return payload;
 }
 
+async function apiDelete(path) {
+  const res = await fetch(path, {
+    method: 'DELETE',
+    headers: {
+      'Accept-Language': state.locale,
+      'Authorization': BASIC_AUTH,
+    },
+  });
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(payload.message || `${path}: HTTP ${res.status}`);
+  }
+  return payload;
+}
+
 // ---------- Toast ----------
 
 function toast(message, type = 'info') {
@@ -142,6 +157,9 @@ const views = {
   matters: renderMatters,
   audit: renderAudit,
   orgs: renderOrgs,
+  keys: renderKeys,
+  prompts: renderPrompts,
+  agents: renderAgents,
 };
 
 function render(route) {
@@ -424,6 +442,229 @@ async function renderOrgs(root) {
               <th>${t('orgs.level')}</th>
             </tr>
           </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+  } catch (err) {
+    root.innerHTML = `<div class="card"><p>${err.message}</p></div>`;
+  }
+}
+
+// ---------- API keys ----------
+
+async function renderKeys(root) {
+  root.innerHTML = `
+    <section class="card">
+      <h2 class="card__title"><span class="material-symbols-outlined" aria-hidden="true">vpn_key</span>${t('keys.issue')}</h2>
+      <p style="font-size:12px;color:var(--md-sys-color-on-surface-variant)">${t('matters.auth')}</p>
+      <form id="issue-key">
+        <div class="form-row">
+          <label for="k-name">${t('keys.name')}</label>
+          <input id="k-name" name="name" required>
+        </div>
+        <div class="form-row">
+          <label for="k-owner">${t('keys.owner')}</label>
+          <input id="k-owner" name="owner" placeholder="partner@example.com">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn--filled" type="submit">
+            <span class="material-symbols-outlined" aria-hidden="true">key</span>
+            ${t('keys.create')}
+          </button>
+        </div>
+      </form>
+      <div id="key-reveal" style="margin-top:16px"></div>
+    </section>
+    <section class="card" id="keys-list">
+      <h2 class="card__title"><span class="material-symbols-outlined" aria-hidden="true">vpn_key</span>${t('keys.heading')}</h2>
+      <div class="loading">${t('app.loading')}</div>
+    </section>
+  `;
+
+  document.getElementById('issue-key').addEventListener('submit', async e => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target).entries());
+    try {
+      const response = await apiPost('/api/v1/openapi/keys', data);
+      const raw = response.data.apiKey;
+      document.getElementById('key-reveal').innerHTML = `
+        <div class="chip chip--primary">${t('keys.raw')}</div>
+        <pre style="user-select:all;padding:12px;border-radius:8px;background:var(--md-sys-color-surface-variant)">${escapeHtml(raw)}</pre>
+        <p style="font-size:12px;color:var(--md-sys-color-error)">${t('keys.issued')}</p>
+      `;
+      e.target.reset();
+      refreshKeysList();
+    } catch (err) { toast(err.message, 'error'); }
+  });
+  refreshKeysList();
+}
+
+async function refreshKeysList() {
+  const list = document.getElementById('keys-list');
+  try {
+    const response = await apiGet('/api/v1/openapi/keys');
+    const keys = response.data || [];
+    if (keys.length === 0) {
+      list.innerHTML = `<h2 class="card__title">${t('keys.heading')}</h2><p>${t('keys.none')}</p>`;
+      return;
+    }
+    const rows = keys.map(k => `
+      <tr>
+        <td><code>${k.id.slice(0, 8)}…</code></td>
+        <td>${escapeHtml(k.name)}</td>
+        <td>${escapeHtml(k.owner || '')}</td>
+        <td><code>${k.keyDigest.slice(0, 12)}…</code></td>
+        <td><span class="chip ${k.enabled ? 'chip--primary' : 'chip--error'}">${k.enabled ? '✓' : '✗'}</span></td>
+        <td><button class="btn btn--tonal" data-revoke="${k.id}">${t('keys.revoke')}</button></td>
+      </tr>
+    `).join('');
+    list.innerHTML = `
+      <h2 class="card__title"><span class="material-symbols-outlined" aria-hidden="true">vpn_key</span>${t('keys.heading')}</h2>
+      <table class="table">
+        <thead><tr>
+          <th>${t('keys.id')}</th>
+          <th>${t('keys.name')}</th>
+          <th>${t('keys.owner')}</th>
+          <th>${t('keys.digest')}</th>
+          <th>${t('keys.enabled')}</th>
+          <th></th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+    list.querySelectorAll('button[data-revoke]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        try { await apiDelete(`/api/v1/openapi/keys/${btn.dataset.revoke}`); refreshKeysList(); }
+        catch (err) { toast(err.message, 'error'); btn.disabled = false; }
+      });
+    });
+  } catch (err) {
+    list.innerHTML = `<p>${err.message}</p>`;
+  }
+}
+
+// ---------- Prompt templates ----------
+
+async function renderPrompts(root) {
+  root.innerHTML = `
+    <section class="card">
+      <h2 class="card__title"><span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>${t('prompts.create')}</h2>
+      <form id="prompt-form">
+        <div class="form-row">
+          <label for="p-code">${t('prompts.code')}</label>
+          <input id="p-code" name="code" required placeholder="intake.greeting">
+        </div>
+        <div class="form-row">
+          <label for="p-body">${t('prompts.template')}</label>
+          <textarea id="p-body" name="template" required>Matter title: {{title}}
+Category: {{category}}
+Please provide a neutral rationale for the routing decision.</textarea>
+        </div>
+        <div class="form-row">
+          <label for="p-desc">${t('prompts.description')}</label>
+          <input id="p-desc" name="description">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn--filled" type="submit">${t('prompts.save')}</button>
+        </div>
+      </form>
+    </section>
+    <section class="card" id="prompts-list">
+      <h2 class="card__title"><span class="material-symbols-outlined" aria-hidden="true">library_books</span>${t('prompts.heading')}</h2>
+      <div class="loading">${t('app.loading')}</div>
+    </section>
+  `;
+  document.getElementById('prompt-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target).entries());
+    try {
+      await apiPost(`/api/v1/ai/prompts/${encodeURIComponent(data.code)}`, {
+        template: data.template,
+        description: data.description,
+      });
+      e.target.reset();
+      refreshPromptsList();
+    } catch (err) { toast(err.message, 'error'); }
+  });
+  refreshPromptsList();
+}
+
+async function refreshPromptsList() {
+  const list = document.getElementById('prompts-list');
+  try {
+    const response = await apiGet('/api/v1/ai/prompts');
+    const items = response.data || [];
+    if (items.length === 0) {
+      list.innerHTML = `<h2 class="card__title">${t('prompts.heading')}</h2><p>${t('prompts.empty')}</p>`;
+      return;
+    }
+    const rows = items.map(p => `
+      <tr>
+        <td><code>${escapeHtml(p.code)}</code></td>
+        <td>v${p.version}</td>
+        <td>${escapeHtml(p.description || '')}</td>
+        <td><span class="chip ${p.published ? 'chip--primary' : 'chip--outline'}">${p.published ? t('prompts.published') : '—'}</span></td>
+        <td>${p.published ? '' : `<button class="btn btn--tonal" data-publish="${p.id}">${t('prompts.publish')}</button>`}</td>
+      </tr>
+    `).join('');
+    list.innerHTML = `
+      <h2 class="card__title"><span class="material-symbols-outlined" aria-hidden="true">library_books</span>${t('prompts.heading')}</h2>
+      <table class="table">
+        <thead><tr>
+          <th>${t('prompts.code')}</th>
+          <th>${t('prompts.version')}</th>
+          <th>${t('prompts.description')}</th>
+          <th></th>
+          <th></th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+    list.querySelectorAll('button[data-publish]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        try { await apiPost(`/api/v1/ai/prompts/${btn.dataset.publish}/publish`, {}); refreshPromptsList(); }
+        catch (err) { toast(err.message, 'error'); btn.disabled = false; }
+      });
+    });
+  } catch (err) {
+    list.innerHTML = `<p>${err.message}</p>`;
+  }
+}
+
+// ---------- Agents ----------
+
+async function renderAgents(root) {
+  root.innerHTML = `<div class="card"><h2 class="card__title"><span class="material-symbols-outlined" aria-hidden="true">smart_toy</span>${t('agents.heading')}</h2><div class="loading">${t('app.loading')}</div></div>`;
+  try {
+    const response = await apiGet('/api/v1/ai/agents');
+    const agents = response.data || [];
+    if (agents.length === 0) {
+      root.innerHTML = `<div class="card"><p>${t('agents.none')}</p></div>`;
+      return;
+    }
+    const rows = agents.map(a => `
+      <tr>
+        <td><code>${escapeHtml(a.agentId)}</code></td>
+        <td>${escapeHtml(a.description || '')}</td>
+        <td><span class="chip ${riskChipClass(a.riskLevel)}">${a.riskLevel}</span></td>
+        <td><span class="chip chip--outline">${a.hitlPolicy}</span></td>
+        <td>${(a.allowedTools || []).map(tool => `<span class="chip chip--outline">${tool}</span>`).join(' ')}</td>
+      </tr>
+    `).join('');
+    root.innerHTML = `
+      <div class="card">
+        <h2 class="card__title"><span class="material-symbols-outlined" aria-hidden="true">smart_toy</span>${t('agents.heading')}</h2>
+        <table class="table">
+          <thead><tr>
+            <th>ID</th>
+            <th>${t('agents.description')}</th>
+            <th>${t('agents.risk')}</th>
+            <th>${t('agents.hitl')}</th>
+            <th>${t('agents.allowedTools')}</th>
+          </tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
