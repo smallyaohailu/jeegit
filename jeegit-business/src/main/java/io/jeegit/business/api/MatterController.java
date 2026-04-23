@@ -59,7 +59,9 @@ public class MatterController {
                         "matterId", m.getId(),
                         "title", m.getTitle(),
                         "category", m.getCategory(),
-                        "description", m.getDescription() == null ? "" : m.getDescription()
+                        "description", m.getDescription() == null ? "" : m.getDescription(),
+                        "applicantId", m.getApplicantId() == null ? "" : m.getApplicantId(),
+                        "orgId", m.getOrgId() == null ? "" : m.getOrgId()
                 )
         );
         return ApiResponse.ok(agentRuntime.invoke(req));

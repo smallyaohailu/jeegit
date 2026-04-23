@@ -39,18 +39,24 @@ public class MatterDispatchTool implements Tool {
     public Map<String, Object> execute(Map<String, Object> params) {
         String matterId = (String) params.get("matterId");
         String department = (String) params.get("department");
-        String nextStatus = (String) params.getOrDefault("status", "DISPATCHED");
+        String nextRaw = (String) params.getOrDefault("status", Matter.MatterStatus.DISPATCHED.name());
         if (matterId == null || department == null) {
             throw new IllegalArgumentException("matter.dispatch requires matterId and department");
         }
         String tenantId = (String) params.getOrDefault("tenantId", TenantContext.tenant());
         TenantContext.setTenant(tenantId);
 
-        Matter updated = matterService.assignDepartment(matterId, department, nextStatus);
+        Matter.MatterStatus next;
+        try {
+            next = Matter.MatterStatus.valueOf(nextRaw);
+        } catch (IllegalArgumentException ex) {
+            next = Matter.MatterStatus.DISPATCHED;
+        }
+        Matter updated = matterService.assignDepartment(matterId, department, next);
         return Map.of(
                 "matterId", updated.getId(),
                 "department", updated.getAssignedDepartment(),
-                "status", updated.getStatus()
+                "status", updated.getMatterStatus().name()
         );
     }
 }

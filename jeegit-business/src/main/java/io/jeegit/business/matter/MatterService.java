@@ -1,37 +1,36 @@
 package io.jeegit.business.matter;
 
 import io.jeegit.common.TenantContext;
+import io.jeegit.common.dao.DataScope;
+import io.jeegit.tech.iam.DataScopeSpecifications;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class MatterService {
 
     private final MatterRepository repository;
+    private final DataScopeSpecifications dataScopeSpecs;
 
-    public MatterService(MatterRepository repository) {
+    public MatterService(MatterRepository repository, DataScopeSpecifications dataScopeSpecs) {
         this.repository = repository;
+        this.dataScopeSpecs = dataScopeSpecs;
     }
 
     @Transactional
     public Matter submit(String title, String category, String description, String applicantId) {
-        Matter m = new Matter(
-                UUID.randomUUID().toString(),
-                TenantContext.tenant(),
-                title,
-                category,
-                description,
-                applicantId
-        );
+        Matter m = new Matter(title, category, description, applicantId);
+        m.setTenantId(TenantContext.tenant());
         return repository.save(m);
     }
 
     @Transactional(readOnly = true)
     public Matter get(String id) {
-        return repository.findById(id).orElseThrow(() -> new IllegalArgumentException("matter not found: " + id));
+        return repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("matter not found: " + id));
     }
 
     @Transactional(readOnly = true)
@@ -39,12 +38,24 @@ public class MatterService {
         return repository.findByTenantIdOrderByCreatedAtDesc(TenantContext.tenant());
     }
 
+    /**
+     * 按当前访问者的数据范围列出事项。
+     * Agent 或 API 层决定 scope / anchorOrgId 的取值，服务层不做静默收敛。
+     */
+    @Transactional(readOnly = true)
+    public List<Matter> listInScope(String currentUserId, String currentUserOrgId,
+                                    DataScope scope, String customOrgIds) {
+        Specification<Matter> spec = dataScopeSpecs.build(
+                TenantContext.tenant(), currentUserId, currentUserOrgId, scope, customOrgIds);
+        return repository.findAll(spec);
+    }
+
     @Transactional
-    public Matter assignDepartment(String id, String department, String status) {
+    public Matter assignDepartment(String id, String department, Matter.MatterStatus nextStatus) {
         Matter m = get(id);
         m.setAssignedDepartment(department);
-        if (status != null) {
-            m.setStatus(status);
+        if (nextStatus != null) {
+            m.setMatterStatus(nextStatus);
         }
         return repository.save(m);
     }

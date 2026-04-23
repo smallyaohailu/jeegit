@@ -10,34 +10,48 @@ import io.jeegit.ai.model.ModelRequest;
 import io.jeegit.ai.model.ModelResponse;
 import io.jeegit.ai.tool.Tool;
 import io.jeegit.ai.tool.ToolRegistry;
+import io.jeegit.common.TenantContext;
+import io.jeegit.tech.dict.DictItem;
+import io.jeegit.tech.dict.DictService;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * 受理分派 Agent（示范）。
- * 职责：根据事项标题/分类/描述，结合规则 + 模型提示，推荐分派部门，
- *       并通过 {@code matter.dispatch} 工具完成分派。
+ * 受理分派 Agent（示范实现）。
  *
- * 遵循：
- *   - AI_GOVERNANCE §2 权限最小化：只能调用白名单中的工具
- *   - AI_GOVERNANCE §3 风险分级：MEDIUM，默认策略 ON_HIGH_RISK
- *   - MVP_SCOPE §4 验收项：返回可解释推理 + 审计日志 ID
+ * 决策过程：
+ *   1) 从字典 {@code MATTER_DISPATCH_RULE} 读取规则条目
+ *      item_key   = 目标部门
+ *      item_value = 关键词列表（逗号分隔）
+ *   2) 依次匹配标题 / 分类 / 描述，命中即锁定目标部门
+ *   3) 无命中则走默认 "综合受理窗口"
+ *   4) 调 Model Gateway 生成可审计的一句话理由
+ *   5) 通过 {@code matter.dispatch} 工具完成分派
+ *
+ * 运营可在不重启应用的前提下通过字典 API 调整规则——规则即数据。
  */
 @Component
 public class IntakeDispatchAgent implements Agent {
 
     public static final String AGENT_ID = "agent.intake.dispatch";
+    public static final String RULE_DICT_CODE = "MATTER_DISPATCH_RULE";
+    public static final String DEFAULT_DEPARTMENT = "综合受理窗口";
     private static final Set<String> ALLOWED_TOOLS = Set.of("matter.dispatch");
 
     private final ToolRegistry toolRegistry;
     private final ModelGateway modelGateway;
+    private final DictService dictService;
 
-    public IntakeDispatchAgent(ToolRegistry toolRegistry, ModelGateway modelGateway) {
+    public IntakeDispatchAgent(ToolRegistry toolRegistry,
+                               ModelGateway modelGateway,
+                               DictService dictService) {
         this.toolRegistry = toolRegistry;
         this.modelGateway = modelGateway;
+        this.dictService = dictService;
     }
 
     @Override
@@ -46,7 +60,7 @@ public class IntakeDispatchAgent implements Agent {
                 AGENT_ID,
                 "default",
                 "system",
-                "政务事项受理分派 Agent：根据事项内容推荐部门并完成分派",
+                "政务事项受理分派 Agent：按字典规则 + 模型辅助推理完成部门分派",
                 Set.of("ROLE_DISPATCHER"),
                 ALLOWED_TOOLS,
                 "MEDIUM",
@@ -65,48 +79,69 @@ public class IntakeDispatchAgent implements Agent {
             return AgentResponse.denied("缺少 matterId，无法分派。", null);
         }
 
-        String department = decideDepartment(category, title, description);
-        String ruleExplanation = "规则引擎：基于分类 '" + category + "' 与关键词命中 → " + department;
+        String previousTenant = TenantContext.tenant();
+        TenantContext.setTenant(request.tenantId());
+        Match match;
+        try {
+            match = resolveDepartment(category, title, description);
+        } finally {
+            TenantContext.setTenant(previousTenant);
+        }
 
         ModelResponse llm = modelGateway.invoke(ModelRequest.of(
                 request.tenantId(),
                 "default",
-                "事项标题：" + title + "\n分类：" + category
-                        + "\n请给出一句话的分派理由，保持中立与可审计。"
+                "事项标题：" + n(title)
+                        + "\n分类：" + n(category)
+                        + "\n已选定部门：" + match.department
+                        + "\n请用一句中立、可审计的中文说明此分派理由。"
         ));
 
         Tool tool = toolRegistry.find("matter.dispatch")
                 .orElseThrow(() -> new IllegalStateException("matter.dispatch tool not available"));
-
         if (!ALLOWED_TOOLS.contains(tool.name())) {
             return AgentResponse.denied("Agent 未被授予工具 " + tool.name(), null);
         }
 
         Map<String, Object> toolOut = tool.execute(Map.of(
                 "matterId", matterId,
-                "department", department,
+                "department", match.department,
                 "tenantId", request.tenantId(),
                 "status", "DISPATCHED"
         ));
 
         Map<String, Object> decision = new LinkedHashMap<>();
         decision.put("matterId", matterId);
-        decision.put("department", department);
+        decision.put("department", match.department);
+        decision.put("ruleSource", match.source);
+        decision.put("matchedKeyword", match.matchedKeyword);
         decision.put("toolResult", toolOut);
 
-        String reasoning = ruleExplanation + " | 模型补充理由：" + llm.content();
+        String reasoning = "规则来源：" + match.source
+                + "；命中关键词：" + (match.matchedKeyword == null ? "(无)" : match.matchedKeyword)
+                + "；目标部门：" + match.department
+                + "。模型补充：" + llm.content();
         return AgentResponse.executed(decision, reasoning, null);
     }
 
-    private String decideDepartment(String category, String title, String description) {
-        String text = String.join(" ",
-                n(category), n(title), n(description)).toLowerCase();
-        if (text.contains("税") || text.contains("tax")) return "税务局";
-        if (text.contains("社保") || text.contains("医保") || text.contains("social")) return "社保局";
-        if (text.contains("工商") || text.contains("营业执照") || text.contains("business")) return "市场监督管理局";
-        if (text.contains("户籍") || text.contains("身份证") || text.contains("civil")) return "公安局户政科";
-        if (text.contains("投诉") || text.contains("complaint")) return "信访办";
-        return "综合受理窗口";
+    private Match resolveDepartment(String category, String title, String description) {
+        String text = (n(category) + " " + n(title) + " " + n(description)).toLowerCase();
+
+        List<DictItem> rules = dictService.listItems(RULE_DICT_CODE);
+        for (DictItem rule : rules) {
+            String keywords = rule.getItemValue();
+            if (keywords == null || keywords.isBlank()) continue;
+            for (String kw : keywords.split(",")) {
+                String k = kw.trim().toLowerCase();
+                if (!k.isEmpty() && text.contains(k)) {
+                    return new Match(rule.getItemKey(), "dict:" + RULE_DICT_CODE, k);
+                }
+            }
+        }
+        return new Match(DEFAULT_DEPARTMENT, "fallback:default", null);
+    }
+
+    private record Match(String department, String source, String matchedKeyword) {
     }
 
     private String str(Object o) {

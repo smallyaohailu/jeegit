@@ -1,74 +1,69 @@
 package io.jeegit.business.matter;
 
-import jakarta.persistence.*;
-import java.time.Instant;
+import io.jeegit.common.dao.TenantAwareEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 
 /**
- * 事项（Matter）—— 政务事项受理的核心聚合根。
- * 同样可被中小企业复用为"内部事项/工单"。
+ * 事项（Matter）—— 通用的"受理/审批/督办"聚合根。
+ * 同时适配政务事项与企业内部工单场景。
  */
 @Entity
-@Table(name = "jeegit_matter",
+@Table(name = "jg_matter",
         indexes = {
-                @Index(name = "idx_matter_tenant", columnList = "tenantId"),
-                @Index(name = "idx_matter_status", columnList = "status")
+                @Index(name = "idx_matter_tenant", columnList = "tenant_id"),
+                @Index(name = "idx_matter_status", columnList = "matter_status"),
+                @Index(name = "idx_matter_org", columnList = "tenant_id,org_id")
         })
-public class Matter {
+public class Matter extends TenantAwareEntity {
 
-    @Id
-    @Column(length = 64)
-    private String id;
+    public enum MatterStatus {
+        DRAFT,
+        SUBMITTED,
+        DISPATCHED,
+        PENDING_APPROVAL,
+        APPROVED,
+        REJECTED,
+        CLOSED
+    }
 
-    @Column(nullable = false, length = 64)
-    private String tenantId;
-
-    @Column(nullable = false, length = 200)
+    @Column(name = "title", length = 200, nullable = false)
     private String title;
 
-    @Column(length = 64)
+    @Column(name = "category", length = 64)
     private String category;
 
-    @Column(length = 4000)
+    @Column(name = "description", length = 4000)
     private String description;
 
-    @Column(length = 128)
+    @Column(name = "applicant_id", length = 128)
     private String applicantId;
 
-    @Column(length = 64)
+    @Column(name = "org_id", length = 64)
+    private String orgId;
+
+    @Column(name = "assigned_department", length = 128)
     private String assignedDepartment;
 
-    /** DRAFT / SUBMITTED / DISPATCHED / PENDING_APPROVAL / APPROVED / REJECTED / CLOSED */
-    @Column(nullable = false, length = 32)
-    private String status = "DRAFT";
-
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt = Instant.now();
-
-    private Instant updatedAt;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "matter_status", length = 32, nullable = false)
+    private MatterStatus matterStatus = MatterStatus.DRAFT;
 
     public Matter() {
     }
 
-    public Matter(String id, String tenantId, String title, String category,
-                  String description, String applicantId) {
-        this.id = id;
-        this.tenantId = tenantId;
+    public Matter(String title, String category, String description, String applicantId) {
         this.title = title;
         this.category = category;
         this.description = description;
         this.applicantId = applicantId;
-        this.status = "SUBMITTED";
+        this.matterStatus = MatterStatus.SUBMITTED;
     }
 
-    @PreUpdate
-    public void touch() {
-        this.updatedAt = Instant.now();
-    }
-
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-    public String getTenantId() { return tenantId; }
-    public void setTenantId(String tenantId) { this.tenantId = tenantId; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getCategory() { return category; }
@@ -77,10 +72,10 @@ public class Matter {
     public void setDescription(String description) { this.description = description; }
     public String getApplicantId() { return applicantId; }
     public void setApplicantId(String applicantId) { this.applicantId = applicantId; }
+    public String getOrgId() { return orgId; }
+    public void setOrgId(String orgId) { this.orgId = orgId; }
     public String getAssignedDepartment() { return assignedDepartment; }
     public void setAssignedDepartment(String assignedDepartment) { this.assignedDepartment = assignedDepartment; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-    public Instant getCreatedAt() { return createdAt; }
-    public Instant getUpdatedAt() { return updatedAt; }
+    public MatterStatus getMatterStatus() { return matterStatus; }
+    public void setMatterStatus(MatterStatus matterStatus) { this.matterStatus = matterStatus; }
 }
