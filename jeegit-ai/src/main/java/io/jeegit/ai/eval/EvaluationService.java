@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 评测即门禁（Eval as Gate）接入点。
- * AI_GOVERNANCE.md §7：每个 Agent/Prompt/知识库必须绑定评测集才能发布。
+ * "Eval as gate" contract. AI_GOVERNANCE.md §7 requires every agent, prompt,
+ * and knowledge-base change to ship with an evaluation suite that runs in CI
+ * before the change may be released.
  *
- * MVP 仅定义契约，后续接入真实评测框架（内部 CI 或独立评测服务）。
+ * The preview exposes the contract only; the production harness is released
+ * as a separate deliverable.
  */
 public interface EvaluationService {
 

@@ -5,8 +5,8 @@ import io.jeegit.ai.hitl.HitlPolicy;
 import java.util.Set;
 
 /**
- * Agent 定义——以数据形式描述一个"数字员工"。
- * 对应 AI_GOVERNANCE.md §2 的权限模型。
+ * Static, data-only description of an agent — maps directly onto the
+ * permission model in AI_GOVERNANCE.md §2.
  */
 public record AgentDefinition(
         String agentId,

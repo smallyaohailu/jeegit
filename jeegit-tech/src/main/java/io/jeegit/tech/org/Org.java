@@ -7,8 +7,9 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 /**
- * 组织（Organization）—— 统一承载"公司 / 部门 / 团队"三种常见结构。
- * 通过 {@link #getType()} 区分，避免在代码里出现多棵并行的树。
+ * Organization — a single tree hosting {@code COMPANY}, {@code DEPARTMENT},
+ * and {@code TEAM} node types so the codebase never has to maintain multiple
+ * parallel trees.
  */
 @Entity
 @Table(name = "jg_org",

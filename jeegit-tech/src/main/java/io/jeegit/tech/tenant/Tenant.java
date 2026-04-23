@@ -6,8 +6,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 /**
- * 租户（Tenant）—— 平台内所有数据的隔离边界。
- * 本身不带 tenantId（它 <i>就是</i> 租户），因此继承 AuditableEntity 而非 TenantAwareEntity。
+ * Tenant — the top-level isolation boundary for every piece of platform data.
+ * Tenant rows themselves are not tenant-scoped (they <em>are</em> the tenant),
+ * so this entity extends {@link AuditableEntity} rather than the tenant-aware
+ * base class.
  */
 @Entity
 @Table(name = "jg_tenant")

@@ -3,12 +3,14 @@ package io.jeegit.ai.agent;
 import java.util.Map;
 
 /**
- * Agent 的执行结果。
+ * Structured result of an agent invocation.
  *
- * @param status   EXECUTED / PENDING_APPROVAL / DENIED
- * @param decision 结构化决策（例如分派到哪个部门、推荐的处置方式）
- * @param reasoningSummary 人类可读的推理摘要——"可解释"承诺的直接载体
- * @param auditLogId 审计日志 ID，便于回放
+ * @param status           {@code EXECUTED}, {@code PENDING_APPROVAL}, or {@code DENIED}
+ * @param decision         structured decision payload (e.g. target department,
+ *                         recommended action)
+ * @param reasoningSummary human-readable rationale — the direct artifact of the
+ *                         "explainable" commitment
+ * @param auditLogId       id of the audit entry written for this invocation
  */
 public record AgentResponse(
         String status,

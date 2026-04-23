@@ -7,9 +7,9 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 /**
- * 字典项（Dictionary Item）。一个字典类型下的可选值集合。
- * {@code attributes} 以 JSON 字符串存储，为业务方提供结构化扩展位，
- * 例如在分派规则中记录关键词数组、优先级、目标部门编码等。
+ * Dictionary item — a single entry inside a {@link DictType}. The
+ * {@code attributes} column stores JSON for structured extensions such as
+ * keyword arrays, priorities, or target-department codes in routing rules.
  */
 @Entity
 @Table(name = "jg_dict_item",

@@ -3,16 +3,18 @@ package io.jeegit.ai.hitl;
 import org.springframework.stereotype.Component;
 
 /**
- * HITL 拦截器。AgentRuntime 在执行 HIGH 风险动作前必须调用本组件决策。
- * 当前实现为进程内策略判定；后续可对接人工审批队列。
+ * Evaluates the HITL policy before the AgentRuntime executes a tool call.
+ * The preview implementation is in-process; production deployments typically
+ * replace the {@link Decision#PENDING_APPROVAL} path with a real approval
+ * queue (task system, chatops bot, ticket, etc.).
  */
 @Component
 public class HitlGuard {
 
     public enum Decision {
-        /** 允许自动执行。 */
+        /** The action may run automatically. */
         ALLOW,
-        /** 阻塞，必须等待人工审批。 */
+        /** The action is blocked until a human explicitly approves it. */
         PENDING_APPROVAL
     }
 

@@ -13,13 +13,15 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Agent 运行时。负责：
- *   1) 注册 / 发现 Agent
- *   2) 执行前后统一审计
- *   3) 统一走 HITL 策略
- *   4) 为每次调用生成 traceId（后续接入 OpenTelemetry）
- *
- * 关键承诺：业务方只与 AgentRuntime 交互，不直接 new Agent()。
+ * Runtime for every agent invocation. Responsibilities:
+ * <ul>
+ *   <li>Registration / discovery of {@link Agent} implementations</li>
+ *   <li>Uniform audit entries before and after execution</li>
+ *   <li>Uniform HITL gate enforcement</li>
+ *   <li>Trace-id generation for downstream OpenTelemetry integration</li>
+ * </ul>
+ * Contract: business code only talks to the runtime, never directly to
+ * an {@code Agent} instance.
  */
 @Component
 public class AgentRuntime {
@@ -61,7 +63,8 @@ public class AgentRuntime {
                     "Agent " + def.agentId() + " blocked by HITL policy=" + def.hitlPolicy(),
                     String.valueOf(request.input()), null, 0);
             return AgentResponse.pending(Map.of("reason", "HITL required"),
-                    "因策略 " + def.hitlPolicy() + " 命中，动作需人工审批后执行。", auditId);
+                    "Blocked by HITL policy " + def.hitlPolicy()
+                            + ": the action requires human approval before execution.", auditId);
         }
 
         long start = System.currentTimeMillis();

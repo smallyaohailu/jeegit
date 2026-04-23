@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 字典服务。提供：
- *  - 类型与项的 CRUD / 查询
- *  - Agent 可复用的"按类型取全部启用项"便利方法
+ * Dictionary service. Provides CRUD for types / items and the
+ * "list active items for a type" convenience method used by agents.
  *
- * Agent 运行时通过本服务读取规则，运营可在不重启应用的前提下调整业务规则，
- * 契合 AI_GOVERNANCE.md §6"Prompt/规则资产化"的思想在业务规则层的延伸。
+ * <p>Operators can update rules through the REST API without redeploy, which
+ * extends the "Prompt / rule as asset" principle of AI_GOVERNANCE.md §6 to
+ * business rules.</p>
  */
 @Service
 public class DictService {

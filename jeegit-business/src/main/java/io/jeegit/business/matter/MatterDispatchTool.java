@@ -7,9 +7,10 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * matter.dispatch 工具 —— Agent 唯一能修改事项分派结果的入口。
- * 架构宪章第 6 条：跨模块调用走"应用服务接口"。
- * AI_GOVERNANCE.md §2：工具白名单授权 + 风险等级声明。
+ * {@code matter.dispatch} tool — the only way an agent can change how a
+ * matter is routed. Cross-module writes therefore always flow through the
+ * documented application service (Architecture Charter §6) with an explicit
+ * risk declaration (AI_GOVERNANCE.md §2).
  */
 @Component
 public class MatterDispatchTool implements Tool {
@@ -27,7 +28,8 @@ public class MatterDispatchTool implements Tool {
 
     @Override
     public String description() {
-        return "将事项分派给指定部门并更新状态（仅 Agent 通过白名单授权后可调用）";
+        return "Route a matter to a named department and update its status. "
+                + "Callable only by agents that hold this tool on their allow-list.";
     }
 
     @Override

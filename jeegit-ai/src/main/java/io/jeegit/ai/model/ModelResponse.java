@@ -3,7 +3,9 @@ package io.jeegit.ai.model;
 import java.time.Instant;
 
 /**
- * 模型调用响应。包含可解释所需的最小字段。
+ * Structured response from a model invocation.
+ * Carries only the fields required to audit and explain the call; provider-specific
+ * metadata should be stored under {@code parameters} of the request if needed.
  */
 public record ModelResponse(
         String modelKey,

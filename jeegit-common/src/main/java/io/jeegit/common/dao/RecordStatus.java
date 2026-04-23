@@ -1,7 +1,7 @@
 package io.jeegit.common.dao;
 
 /**
- * 记录业务状态（与逻辑删除独立）。
+ * Business-visible record status, independent of the logical-delete flag.
  */
 public enum RecordStatus {
     NORMAL,

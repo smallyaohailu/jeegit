@@ -12,8 +12,10 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 /**
- * AI 底座默认装配。仅当使用方未自行提供实现时生效。
- * 生产部署可通过注入自定义 Bean 覆盖（例如接入 OpenAI 兼容网关）。
+ * Default auto-configuration for the AI core. Every bean is registered only
+ * when the consuming application has not provided its own; production
+ * deployments typically override {@link ModelGateway}, {@link KnowledgeService},
+ * and {@link EvaluationService} with provider-backed implementations.
  */
 @Configuration
 public class AiCoreAutoConfiguration {

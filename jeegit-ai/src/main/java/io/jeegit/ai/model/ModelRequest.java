@@ -3,8 +3,9 @@ package io.jeegit.ai.model;
 import java.util.Map;
 
 /**
- * 模型调用请求。语义上等同于"面向模型的一次提问"。
- * ModelGateway 负责解释本对象并路由到具体厂商实现。
+ * A single "question to a model". The Model Gateway routes the request to the
+ * concrete provider implementation based on the {@code modelKey} (and on the
+ * tenant-specific provider configuration in production).
  */
 public record ModelRequest(
         String tenantId,

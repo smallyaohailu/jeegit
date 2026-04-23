@@ -1,24 +1,25 @@
 package io.jeegit.common.dao;
 
 /**
- * 数据权限范围（Data Scope）—— 在角色层声明，服务层据此构造查询过滤。
+ * Declarative data-access scope attached to a {@code Role}.
  *
- * 语义参考 jeesite 的分级模型，但用枚举 + 查询规约（Specification）来实现，
- * 避免原生 SQL 拼接。
+ * <p>The scope is turned into a JPA {@code Specification} by a
+ * framework-provided factory so every business query composes the same
+ * portable Criteria — no hand-written SQL fragments.</p>
  */
 public enum DataScope {
-    /** 全部数据。 */
+    /** All data, no filtering. */
     ALL,
-    /** 本公司（顶级组织）的数据。 */
+    /** Data belonging to the user's owning company (top-level organization). */
     COMPANY,
-    /** 本公司及其下属组织的数据。 */
+    /** The user's company and every descendant organization. */
     COMPANY_AND_CHILD,
-    /** 本部门的数据。 */
+    /** Data belonging to the user's immediate department. */
     DEPARTMENT,
-    /** 本部门及其下属部门的数据。 */
+    /** The user's department and every descendant department. */
     DEPARTMENT_AND_CHILD,
-    /** 仅本人创建的数据。 */
+    /** Data created by the user. */
     SELF,
-    /** 自定义（由关联的组织 ID 列表决定）。 */
+    /** Custom — governed by an explicit list of organization IDs on the role. */
     CUSTOM
 }

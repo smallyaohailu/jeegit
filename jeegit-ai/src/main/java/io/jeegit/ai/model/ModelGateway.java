@@ -1,12 +1,13 @@
 package io.jeegit.ai.model;
 
 /**
- * 模型网关契约：平台对外唯一的模型调用入口。
- * 架构宪章第 1 条 + AI_GOVERNANCE.md §5：
- *   "禁止业务代码直接调用任何厂商 SDK，所有调用必须经过本网关"。
+ * Single choke point for every LLM call made inside the platform.
  *
- * MVP 提供一个内置 Echo 实现用于端到端闭环验证；
- * 生产部署需注入实际厂商实现（OpenAI 兼容 / 本地 SLM 等）。
+ * <p>Per AI_GOVERNANCE.md §5, business code is not allowed to invoke any vendor
+ * SDK directly; the gateway owns authentication, quota, cost accounting,
+ * PII redaction, and audit. The preview ships an {@code EchoModelGateway}
+ * for self-contained demos; production deployments inject a real
+ * implementation (OpenAI-compatible, local SLM, etc.).</p>
  */
 public interface ModelGateway {
 

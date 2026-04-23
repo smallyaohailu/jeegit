@@ -9,9 +9,11 @@ import java.io.Serializable;
 import java.util.UUID;
 
 /**
- * 所有实体的根基类。仅承担主键与"新记录"语义。
- * 主键统一使用 UUID 字符串，方便多租户与跨库迁移；
- * 需要短主键的场景可由子类覆盖 {@code @Id} 定义。
+ * Root base class of every jeegit entity.
+ *
+ * <p>Uses string UUID identifiers for portability across tenants and for
+ * straightforward cross-database migration. Subclasses needing a shorter
+ * natural key are free to override the {@code @Id} mapping.</p>
  */
 @MappedSuperclass
 public abstract class BaseEntity implements Serializable {

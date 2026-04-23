@@ -1,8 +1,9 @@
 package io.jeegit.business.workflow;
 
 /**
- * 工作流引擎接入点（占位契约）。
- * MVP 不内置 BPMN 引擎；对接 Flowable/Camunda 时替换本实现。
+ * Workflow engine integration point. The preview ships a stub implementation;
+ * production deployments can plug in Flowable or Camunda by providing a
+ * {@code WorkflowEngine} bean that overrides the default.
  */
 public interface WorkflowEngine {
 

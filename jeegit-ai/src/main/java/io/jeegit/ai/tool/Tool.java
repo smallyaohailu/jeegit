@@ -3,28 +3,33 @@ package io.jeegit.ai.tool;
 import java.util.Map;
 
 /**
- * 工具（Tool）—— Agent 调用外部能力的统一抽象。
- * 遵循 AI_GOVERNANCE.md §2：工具以白名单方式显式授予 Agent 使用权。
+ * Tool contract — the sole way for an agent to reach outside the model and
+ * mutate business or external state. Per AI_GOVERNANCE.md §2 every tool is
+ * granted to an agent via an explicit allow-list.
  */
 public interface Tool {
 
     /**
-     * 全局唯一工具名。建议 domain.action 形式，例如 matter.dispatch。
+     * Globally unique tool name; the convention is {@code domain.action},
+     * e.g. {@code matter.dispatch}.
      */
     String name();
 
     /**
-     * 一句话说明（将写入审计与开放平台 API 资产目录）。
+     * One-line, human-readable description that is written into audit trails
+     * and surfaced in the Open Platform API catalogue.
      */
     String description();
 
     /**
-     * 风险等级：LOW / MEDIUM / HIGH。HIGH 默认触发 HITL 阻塞。
+     * Risk classification: {@code LOW}, {@code MEDIUM}, or {@code HIGH}.
+     * {@code HIGH} tools trigger the HITL guard by default.
      */
     String riskLevel();
 
     /**
-     * 执行工具。params 中必含 tenantId。
+     * Execute the tool. The {@code params} map is required to carry the
+     * active {@code tenantId}.
      */
     Map<String, Object> execute(Map<String, Object> params);
 }

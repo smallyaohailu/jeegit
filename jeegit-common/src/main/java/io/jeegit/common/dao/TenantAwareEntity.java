@@ -4,11 +4,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 
 /**
- * 租户感知实体基类。每一行业务数据都必须显式归属租户，
- * 以支撑架构宪章第 7 条"多租户隔离到底"。
+ * Base class for every business entity that is tenant-scoped. Enforces a
+ * non-null, non-updatable {@code tenant_id} column so the tenant boundary
+ * cannot be silently widened after a row has been persisted.
  *
- * {@code tenantId} 在持久化前由服务层填充（通常取自 {@link io.jeegit.common.TenantContext}），
- * 不再允许 null 值。
+ * <p>Callers populate the tenant id from {@link io.jeegit.common.TenantContext}
+ * in service-layer code.</p>
  */
 @MappedSuperclass
 public abstract class TenantAwareEntity extends AuditableEntity {

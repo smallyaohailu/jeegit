@@ -5,11 +5,13 @@ import io.jeegit.common.dao.TenantAwareEntity;
 import jakarta.persistence.*;
 
 /**
- * 角色（Role）—— 功能权限 + 数据权限的载体。
- * <p>
- * 与传统 RBAC 不同，本平台把"数据权限范围"声明在 {@link DataScope} 字段上，
- * 服务层在构造查询时据此生成 Specification，而不是在各处散落手写的 SQL 片段。
- * </p>
+ * Role entity — carries both <em>functional</em> permission grants
+ * (captured by role membership) and a <em>data</em> scope declaration.
+ *
+ * <p>Unlike classic RBAC, the data-scope is declared here as a typed
+ * {@link DataScope} value; the service layer turns it into a JPA
+ * {@code Specification}, so queries are portable Criteria rather than
+ * hand-rolled SQL.</p>
  */
 @Entity
 @Table(name = "jg_role",

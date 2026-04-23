@@ -9,8 +9,8 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 /**
- * 事项（Matter）—— 通用的"受理/审批/督办"聚合根。
- * 同时适配政务事项与企业内部工单场景。
+ * Matter — the generic "intake / approval / routing" aggregate root.
+ * Fits both e-government intake cases and internal corporate tickets.
  */
 @Entity
 @Table(name = "jg_matter",

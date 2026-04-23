@@ -15,12 +15,11 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 构造数据权限 Specification 的工厂。
+ * Turns a {@link DataScope} declared on a Role into a JPA {@link Specification}.
  *
- * 调用约定：业务 Repository 扩展 {@code JpaSpecificationExecutor}，
- * 在服务层根据当前用户与角色拿到 {@link Specification}，与其它业务条件 {@code and()} 组合即可。
- *
- * 所有过滤动作都翻译为标准 JPA Criteria，便于在 PostgreSQL / MySQL 上一致执行。
+ * <p>Service layers obtain a {@code Specification<T>} and {@code and()} it with
+ * their business predicates. Every filter is emitted as standard JPA Criteria
+ * so the same code runs unchanged on PostgreSQL, MySQL, H2, etc.</p>
  */
 @Component
 public class DataScopeSpecifications {
@@ -68,7 +67,7 @@ public class DataScopeSpecifications {
                 case COMPANY_AND_CHILD -> all.add(
                         companyScope(root, cb, tenantId, currentUserOrgId, true));
                 case CUSTOM -> all.add(customScope(root, cb, customOrgIds));
-                default -> { /* ALL handled above */ }
+                default -> { /* ALL is handled above */ }
             }
             return cb.and(all.toArray(new Predicate[0]));
         };

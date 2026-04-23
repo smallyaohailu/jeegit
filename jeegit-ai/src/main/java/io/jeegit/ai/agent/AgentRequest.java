@@ -3,7 +3,8 @@ package io.jeegit.ai.agent;
 import java.util.Map;
 
 /**
- * Agent 调用请求。Agent Runtime 据此将任务派发给具体 Agent 实现。
+ * An invocation request handed to the Agent Runtime, which in turn dispatches
+ * it to a concrete {@link Agent} implementation.
  */
 public record AgentRequest(
         String agentId,

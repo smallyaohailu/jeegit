@@ -7,8 +7,9 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 /**
- * 字典类型（Dictionary Type）。例如：{@code MATTER_DISPATCH_RULE}、{@code DATA_SCOPE}。
- * 用作业务下拉项、规则表和 Agent 配置的统一载体。
+ * Dictionary type — a named catalogue (e.g. {@code MATTER_DISPATCH_RULE},
+ * {@code DATA_SCOPE}). Used as the single home for drop-down options, rule
+ * tables, and agent-visible configuration values.
  */
 @Entity
 @Table(name = "jg_dict_type",

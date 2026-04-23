@@ -7,9 +7,8 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 /**
- * 用户（User）—— 平台身份主体。
- * {@code orgId} 指向用户所属的组织节点（见 {@link io.jeegit.tech.org.Org}），
- * 供数据权限计算使用。
+ * Platform user (identity principal). The {@code orgId} column points at the
+ * organization node the user belongs to — it feeds the data-scope resolver.
  */
 @Entity
 @Table(name = "jg_user",

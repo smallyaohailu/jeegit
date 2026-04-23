@@ -1,18 +1,15 @@
 package io.jeegit.ai.agent;
 
 /**
- * Agent 实现契约。任何 Agent（内置或插件）都必须实现本接口。
- * Agent 不得直接访问业务模块实体；只能通过注入的 Tool 调用业务能力。
+ * Contract every agent implementation (built-in or plug-in) must satisfy.
+ * Agents never access business repositories directly; they manipulate the
+ * outside world through the tools enumerated on their definition.
  */
 public interface Agent {
 
-    /**
-     * Agent 的静态定义（含权限、白名单、HITL 策略）。
-     */
+    /** Static agent description (permissions, allow-list, HITL policy). */
     AgentDefinition definition();
 
-    /**
-     * 执行一次任务。Runtime 会在前后做权限/HITL/审计处理。
-     */
+    /** Handle a single task. The runtime wraps this call with governance. */
     AgentResponse handle(AgentRequest request);
 }

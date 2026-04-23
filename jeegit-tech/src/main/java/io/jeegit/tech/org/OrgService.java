@@ -7,6 +7,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Application service that keeps tree invariants ({@code parentIds},
+ * {@code treeLevel}, {@code treeLeaf} on the parent) consistent as nodes are
+ * created.
+ */
 @Service
 public class OrgService {
 

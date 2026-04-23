@@ -14,14 +14,16 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.Instant;
 
 /**
- * 数据实体基类。扩展自 {@link BaseEntity}，增加：
+ * Entity base class that adds:
  * <ul>
- *   <li>逻辑删除标志 {@link DeleteFlag}</li>
- *   <li>记录状态 {@link RecordStatus}</li>
- *   <li>备注 {@code remarks}</li>
- *   <li>Spring Data JPA 审计字段：创建人 / 创建时间 / 更新人 / 更新时间</li>
+ *   <li>{@link DeleteFlag} logical-delete marker</li>
+ *   <li>{@link RecordStatus} business status</li>
+ *   <li>Free-form {@code remarks}</li>
+ *   <li>Spring Data JPA auditing fields: created-by / created-at /
+ *       updated-by / updated-at</li>
  * </ul>
- * 审计字段由 {@code AuditorAware<String>} 自动填充（见 JpaAuditingConfig）。
+ * The audit fields are populated automatically from an {@code AuditorAware<String>}
+ * bean that reads the current actor from {@link io.jeegit.common.TenantContext}.
  */
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)

@@ -1,14 +1,13 @@
 package io.jeegit.ai.hitl;
 
 /**
- * 人机协同（Human-in-the-Loop）策略。
- * 与 Agent 定义中的 hitlPolicy 字段对齐。
+ * Human-in-the-loop approval policy declared on an agent definition.
  */
 public enum HitlPolicy {
-    /** 不需要人工确认。 */
+    /** No approval is required. */
     NONE,
-    /** 仅 HIGH 风险动作需要人工确认。 */
+    /** Only {@code HIGH}-risk actions require a human approval. */
     ON_HIGH_RISK,
-    /** 任何动作都必须人工确认。 */
+    /** Every action requires human approval before execution. */
     ALWAYS
 }

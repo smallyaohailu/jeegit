@@ -4,11 +4,11 @@ import jakarta.persistence.*;
 import java.time.Instant;
 
 /**
- * 审计日志 —— 仅追加，不可修改，不可删除（JPA 层禁止 update/delete）。
- * AI_GOVERNANCE.md §4 的落地载体。
+ * Append-only audit record. Written once and never updated or deleted.
+ * Materializes the commitment in AI_GOVERNANCE.md §4.
  */
 @Entity
-@Table(name = "jeegit_audit_log",
+@Table(name = "jg_audit_log",
         indexes = {
                 @Index(name = "idx_audit_tenant", columnList = "tenantId"),
                 @Index(name = "idx_audit_trace", columnList = "traceId"),

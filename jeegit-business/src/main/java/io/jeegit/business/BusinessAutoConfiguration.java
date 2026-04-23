@@ -8,8 +8,9 @@ import org.springframework.context.annotation.Configuration;
 import java.util.UUID;
 
 /**
- * 业务中台默认装配：提供 WorkflowEngine 的占位实现，
- * 接入真实 BPMN 引擎时用自定义 Bean 覆盖。
+ * Default wiring for the business mid-platform.
+ * Provides a {@link WorkflowEngine} stub; production deployments register a
+ * real BPMN engine bean to take over.
  */
 @Configuration
 public class BusinessAutoConfiguration {

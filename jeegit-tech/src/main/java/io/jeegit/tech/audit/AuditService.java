@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * 审计服务。平台内所有需要留痕的动作都必须通过本服务写入。
- * 实现上严格遵循 append-only：只提供 write/query，没有 update/delete。
+ * Write gateway for audit entries. Intentionally exposes only
+ * {@code record} / query methods — there is no public {@code update} or
+ * {@code delete} operation.
  */
 @Service
 public class AuditService {

@@ -1,8 +1,13 @@
 package io.jeegit.common;
 
 /**
- * 请求级租户/主体上下文。
- * 遵循架构宪章：所有聚合根必须携带租户 ID，由服务层从本上下文透传。
+ * Per-request tenant and actor context.
+ *
+ * <p>Every aggregate root in the platform is tenant-aware
+ * (see {@code TenantAwareEntity}); service layers are expected to read the
+ * active tenant from this holder and populate new records accordingly.
+ * The {@code actor} value is fed into Spring Data JPA auditing to fill
+ * {@code @CreatedBy} / {@code @LastModifiedBy}.</p>
  */
 public final class TenantContext {
 

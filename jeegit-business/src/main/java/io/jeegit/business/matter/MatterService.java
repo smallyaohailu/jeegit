@@ -39,8 +39,9 @@ public class MatterService {
     }
 
     /**
-     * 按当前访问者的数据范围列出事项。
-     * Agent 或 API 层决定 scope / anchorOrgId 的取值，服务层不做静默收敛。
+     * List matters visible to the caller under the supplied data scope.
+     * The caller (REST layer or agent) decides which {@code scope} /
+     * {@code anchorOrgId} apply; the service does not silently narrow them.
      */
     @Transactional(readOnly = true)
     public List<Matter> listInScope(String currentUserId, String currentUserOrgId,

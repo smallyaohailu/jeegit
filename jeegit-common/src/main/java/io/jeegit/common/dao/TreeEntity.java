@@ -4,16 +4,17 @@ import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 
 /**
- * 树形实体基类。借鉴 jeesite 的"物化路径"思路：
+ * Base class for tree-shaped entities, using a <em>materialized path</em>:
  * <ul>
- *   <li>{@code parentId} 直接上级 ID（根节点为空）</li>
- *   <li>{@code parentIds} 从根到父的完整 ID 路径，形如 {@code ",root,a,b,"}，
- *       两端及分隔处均加逗号，便于 {@code LIKE} 查询所有后代</li>
- *   <li>{@code treeLevel} 节点深度（根为 0）</li>
- *   <li>{@code treeSort} 同层显示排序</li>
- *   <li>{@code treeLeaf} 是否叶子（便于 UI 折叠/展开判断）</li>
+ *   <li>{@code parentId} — immediate parent (null for the root)</li>
+ *   <li>{@code parentIds} — comma-surrounded path from root to parent,
+ *       e.g. {@code ",root,a,b,"} — enables descendant queries via
+ *       {@code LIKE '%,x,%'}</li>
+ *   <li>{@code treeLevel} — depth, 0 for the root</li>
+ *   <li>{@code treeSort} — display sort within the same parent</li>
+ *   <li>{@code treeLeaf} — convenience flag for UI fold/unfold</li>
  * </ul>
- * 子类只需新增 {@code code/name} 等业务字段；路径维护逻辑统一在服务层 util 中提供。
+ * Subclasses only need to add their own {@code code}/{@code name} columns.
  */
 @MappedSuperclass
 public abstract class TreeEntity extends TenantAwareEntity {

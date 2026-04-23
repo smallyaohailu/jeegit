@@ -7,8 +7,9 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 /**
- * 将 Spring Data JPA 的审计"当前用户"桥接到 {@link TenantContext#actor()}.
- * 所有 {@code @CreatedBy / @LastModifiedBy} 都从此处取值。
+ * Bridges Spring Data JPA auditing to {@link TenantContext#actor()} so every
+ * {@code @CreatedBy} / {@code @LastModifiedBy} field is populated with the
+ * current actor identifier without extra wiring.
  */
 @Component
 public class TenantAwareAuditorAware implements AuditorAware<String> {

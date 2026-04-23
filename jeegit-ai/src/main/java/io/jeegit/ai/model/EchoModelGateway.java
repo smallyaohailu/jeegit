@@ -6,8 +6,10 @@ import io.jeegit.tech.audit.AuditService;
 import java.time.Instant;
 
 /**
- * 默认 Echo 实现。仅用于打通治理闭环（审计、评测、HITL）。
- * 真实部署请用 Ollama / OpenAI 兼容 / 本地 SLM 实现覆盖。
+ * In-process echo implementation used to demonstrate the governance closure
+ * (audit + evaluation + HITL) without requiring network access to a real
+ * model provider. Replace with a vendor or self-hosted implementation in
+ * production by providing a {@link ModelGateway} bean.
  */
 public class EchoModelGateway implements ModelGateway {
 

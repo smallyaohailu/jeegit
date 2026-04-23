@@ -8,8 +8,9 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 工具注册中心。Spring 扫描到的所有 Tool 自动注册。
- * Agent 调用工具必须经过此处，以便统一校验与审计。
+ * Registry of every {@link Tool} Spring discovers on the classpath. Agents
+ * must look up their tools here so invocations consistently go through the
+ * single choke point where we can validate parameters and write audit entries.
  */
 @Component
 public class ToolRegistry {
