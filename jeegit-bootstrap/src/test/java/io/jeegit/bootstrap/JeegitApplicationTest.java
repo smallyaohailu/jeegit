@@ -169,6 +169,57 @@ class JeegitApplicationTest {
   }
 
   @Test
+  void evalHarness_scoresDispatchAgent() throws Exception {
+    ObjectMapper json = new ObjectMapper();
+    String id1 = createMatter("Tax filing help", "tax");
+    String id2 = createMatter("Pension inquiry", "social");
+    String body =
+        "{\"cases\":["
+            + "{\"id\":\"c-tax\",\"input\":\"matterId="
+            + id1
+            + "\\ntitle=Tax filing help\\ncategory=tax\",\"expected\":\"Tax Bureau\"},"
+            + "{\"id\":\"c-social\",\"input\":\"matterId="
+            + id2
+            + "\\n"
+            + "title=Pension inquiry\\n"
+            + "category=social\",\"expected\":\"Social Security Bureau\"}]}";
+    MvcResult result =
+        mvc()
+            .perform(
+                post("/api/v1/ai/eval/agent.intake.dispatch/run")
+                    .with(httpBasic("admin", "admin"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
+            .andExpect(status().isOk())
+            .andReturn();
+    JsonNode summary = json.readTree(result.getResponse().getContentAsString()).path("data");
+    if (summary.path("total").asInt() != 2
+        || summary.path("passed").asInt() != 2
+        || summary.path("passRate").asDouble() != 1.0) {
+      throw new AssertionError("eval harness summary mismatch: " + summary.toString());
+    }
+  }
+
+  private String createMatter(String title, String category) throws Exception {
+    String body =
+        "{\"title\":\"" + title + "\",\"category\":\"" + category + "\",\"applicantId\":\"eval\"}";
+    MvcResult created =
+        mvc()
+            .perform(
+                post("/api/v1/matters")
+                    .with(httpBasic("admin", "admin"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
+            .andExpect(status().isOk())
+            .andReturn();
+    return new ObjectMapper()
+        .readTree(created.getResponse().getContentAsString())
+        .path("data")
+        .path("id")
+        .asText();
+  }
+
+  @Test
   void approvalAgent_alwaysBlockedByHitl() throws Exception {
     mvc()
         .perform(
