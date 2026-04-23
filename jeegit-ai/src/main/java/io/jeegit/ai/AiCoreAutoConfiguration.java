@@ -4,7 +4,9 @@ import io.jeegit.ai.eval.EvaluationService;
 import io.jeegit.ai.model.EchoModelGateway;
 import io.jeegit.ai.model.ModelGateway;
 import io.jeegit.ai.model.OpenAICompatibleModelGateway;
+import io.jeegit.ai.rag.KnowledgeChunkRepository;
 import io.jeegit.ai.rag.KnowledgeService;
+import io.jeegit.ai.rag.PgVectorKnowledgeService;
 import io.jeegit.tech.audit.AuditService;
 import java.time.Duration;
 import java.util.List;
@@ -13,6 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 /**
  * Default wiring for the AI core.
@@ -55,6 +58,13 @@ public class AiCoreAutoConfiguration {
   @ConditionalOnMissingBean(ModelGateway.class)
   public ModelGateway defaultModelGateway(AuditService auditService) {
     return new EchoModelGateway(auditService);
+  }
+
+  @Bean
+  @Profile({"pgvector", "postgres"})
+  @ConditionalOnMissingBean(KnowledgeService.class)
+  public KnowledgeService pgVectorKnowledgeService(KnowledgeChunkRepository repository) {
+    return new PgVectorKnowledgeService(repository);
   }
 
   @Bean
