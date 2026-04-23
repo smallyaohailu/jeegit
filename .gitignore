@@ -1,0 +1,13 @@
+target/
+.flattened-pom.xml
+*.class
+*.jar
+*.war
+*.log
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
